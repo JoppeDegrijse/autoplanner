@@ -102,7 +102,7 @@ const $=s=>document.querySelector(s), LS=localStorage;
 const NAMES=['Joppe','Iebe'], COL={Joppe:'#2457c5',Iebe:'#f08a1c',Beide:'#16202e'};
 const cfg={key:LS.getItem('ap_key')||'',me:LS.getItem('ap_me')||''};
 let data={ritten:[],...JSON.parse(LS.getItem('ap_data')||'{"reserveringen":[],"tankbeurten":[]}')};
-let view='agenda', cur=new Date(); cur.setDate(1);
+let pending=0,view='agenda', cur=new Date(); cur.setDate(1);
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const today=iso(new Date());
 const fd=k=>new Date(k+'T00:00').toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
@@ -119,9 +119,10 @@ function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clea
 const save=()=>LS.setItem('ap_data',JSON.stringify(data));
 
 async function sync(){
-  if(!cfg.key)return;
+  if(!cfg.key||pending)return;
   try{
     const j=await (await fetch(API+'?key='+encodeURIComponent(cfg.key))).json();
+    if(pending)return;
     if(j.error){toast(j.error==='Geen toegang'?'Sleutel klopt niet. Pas hem aan via je naam rechtsboven.':j.error);return}
     data={ritten:[],...j};save();render();
   }catch(e){toast('Geen verbinding. Je ziet de laatst bewaarde gegevens.')}
@@ -133,15 +134,15 @@ async function call(body){
 const listOf=t=>({reservering:'reserveringen',tankbeurt:'tankbeurten',rit:'ritten'})[t];
 async function add(type,item){
   const k=listOf(type), tmp={...item,id:'tmp'+Date.now()};
-  data[k].push(tmp);render();
+  data[k].push(tmp);render();pending++;
   try{const j=await call({action:'add',type,data:item});tmp.id=j.id;save()}
-  catch(e){data[k]=data[k].filter(x=>x!==tmp);render();toast('Opslaan mislukt: '+e.message)}
+  catch(e){data[k]=data[k].filter(x=>x!==tmp);render();toast('Opslaan mislukt: '+e.message)}finally{pending--}
 }
 async function del(type,id){
   const k=listOf(type), old=data[k];
-  data[k]=old.filter(x=>x.id!==id);render();
+  data[k]=old.filter(x=>x.id!==id);render();pending++;
   try{await call({action:'delete',type,id});save()}
-  catch(e){data[k]=old;render();toast('Verwijderen mislukt')}
+  catch(e){data[k]=old;render();toast('Verwijderen mislukt')}finally{pending--}
 }
 
 function renderAgenda(){
