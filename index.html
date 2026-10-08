@@ -18,7 +18,7 @@ header{display:flex;justify-content:space-between;align-items:center;padding:14p
 h1{font-size:1.35rem;letter-spacing:-.02em}
 #me{color:#fff;padding:6px 14px;border-radius:99px;font-weight:600;font-size:.9rem}
 main{flex:1;overflow-y:auto;padding:8px 16px 24px}
-nav{display:grid;grid-template-columns:1fr 1fr;background:var(--card);border-top:1px solid var(--line);padding-bottom:var(--bot)}
+nav{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border-top:1px solid var(--line);padding-bottom:var(--bot)}
 nav button{padding:14px;font-weight:600;color:var(--mute);border-top:3px solid transparent}
 nav button.on{color:var(--ink);border-top-color:var(--ink)}
 .mnav{display:flex;align-items:center;justify-content:space-between;margin:6px 0 10px}
@@ -41,6 +41,12 @@ h3{margin:22px 0 8px;font-size:1.05rem}
 .seg span{display:block;text-align:center;padding:12px;border-radius:12px;border:2px solid var(--c);color:var(--c);font-weight:600}
 .seg input:checked+span{background:var(--c);color:#fff}
 .seg input:focus-visible+span{outline:3px solid var(--ink)}
+.seg.three{grid-template-columns:repeat(3,1fr)}
+.file{display:block;text-align:center;padding:14px;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;margin-bottom:6px}
+.file input{display:none}
+#rs{margin:2px 0 10px;min-height:1.4em}
+.owe{background:var(--ink);color:#fff;border-radius:14px;padding:14px 16px;margin:6px 0 10px;font-size:1.2rem;font-weight:600}
+.owe small{display:block;font-weight:400;opacity:.8;font-size:.85rem;margin-top:2px}
 .f{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .f label{display:block;font-size:.85rem;color:var(--mute)}
 .f input,.field{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);margin-top:2px}
@@ -63,6 +69,17 @@ body.open #sheet{transform:none}
 <header><h1>Autoplanner</h1><button id="me" data-act="setup"></button></header>
 <main>
   <section id="agenda"></section>
+  <section id="ritten" hidden>
+    <div id="rsum"></div>
+    <form id="rf2">
+      <label class="file">Foto van de kilometerteller<input type="file" id="rf" accept="image/*" capture="environment"></label>
+      <p id="rs" class="mute"></p>
+      <div id="rp"></div>
+      <div class="f" style="grid-template-columns:1fr"><label>Kilometerstand<input type="number" id="rk" min="0" inputmode="numeric" required></label></div>
+      <button class="go">Rit opslaan</button>
+    </form>
+    <div id="rlist"></div>
+  </section>
   <section id="tanken" hidden>
     <form id="tf">
       <div id="tp"></div>
@@ -77,20 +94,26 @@ body.open #sheet{transform:none}
     <div id="tlist"></div>
   </section>
 </main>
-<nav><button data-v="agenda" class="on">Agenda</button><button data-v="tanken">Tanken</button></nav>
+<nav><button data-v="agenda" class="on">Agenda</button><button data-v="ritten">Ritten</button><button data-v="tanken">Tanken</button></nav>
 <div id="scrim" data-act="close"></div><div id="sheet"></div><div id="toast"></div>
 <script>
 const API='https://script.google.com/macros/s/AKfycbwXCURVE-CWmnbBivbrDVDPMOGWioOzEtv3KyPxfIwicBauJTVISnl2UIKHdV10Bjca/exec';
 const $=s=>document.querySelector(s), LS=localStorage;
-const NAMES=['Joppe','Iebe'], COL={Joppe:'#2457c5',Iebe:'#f08a1c'};
+const NAMES=['Joppe','Iebe'], COL={Joppe:'#2457c5',Iebe:'#f08a1c',Beide:'#16202e'};
 const cfg={key:LS.getItem('ap_key')||'',me:LS.getItem('ap_me')||''};
-let data=JSON.parse(LS.getItem('ap_data')||'{"reserveringen":[],"tankbeurten":[]}');
+let data={ritten:[],...JSON.parse(LS.getItem('ap_data')||'{"reserveringen":[],"tankbeurten":[]}')};
 let view='agenda', cur=new Date(); cur.setDate(1);
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const today=iso(new Date());
 const fd=k=>new Date(k+'T00:00').toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
+const multi=r=>r.eind&&r.eind!==r.datum;
+const cov=(r,k)=>r.datum<=k&&(r.eind||r.datum)>=k;
+const tspan=r=>multi(r)?(fd(r.datum)+' '+(r.van||'')+' tot '+fd(r.eind)+' '+(r.tot||'')).replace(/ +/g,' ').trim():(r.van&&r.tot?r.van+' tot '+r.tot:'hele dag');
+const mins=t=>t?(+t.slice(0,2))*60+(+t.slice(3,5)):0;
+const dn=k=>Math.floor(new Date(k+'T00:00:00Z')/864e5);
+const rng=r=>[dn(r.datum)*1440+(r.van?mins(r.van):0),dn(r.eind||r.datum)*1440+(r.tot?mins(r.tot):1440)];
 const eur=n=>n.toLocaleString('nl-BE',{style:'currency',currency:'EUR'});
-const who=(name,sel)=>`<div class="seg">${NAMES.map(n=>`<label style="--c:${COL[n]}"><input type="radio" name="${name}" value="${n}" ${n===sel?'checked':''}><span>${n}</span></label>`).join('')}</div>`;
+const who=(name,sel,list=NAMES)=>`<div class="seg${list.length>2?' three':''}">${list.map(n=>`<label style="--c:${COL[n]}"><input type="radio" name="${name}" value="${n}" ${n===sel?'checked':''}><span>${n}</span></label>`).join('')}</div>`;
 const pick=name=>(document.querySelector(`input[name=${name}]:checked`)||{}).value;
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),3200)}
 const save=()=>LS.setItem('ap_data',JSON.stringify(data));
@@ -100,14 +123,14 @@ async function sync(){
   try{
     const j=await (await fetch(API+'?key='+encodeURIComponent(cfg.key))).json();
     if(j.error){toast(j.error==='Geen toegang'?'Sleutel klopt niet. Pas hem aan via je naam rechtsboven.':j.error);return}
-    data=j;save();render();
+    data={ritten:[],...j};save();render();
   }catch(e){toast('Geen verbinding. Je ziet de laatst bewaarde gegevens.')}
 }
 async function call(body){
   const j=await (await fetch(API,{method:'POST',body:JSON.stringify({key:cfg.key,...body})})).json();
   if(j.error)throw new Error(j.error);return j;
 }
-const listOf=t=>t==='reservering'?'reserveringen':'tankbeurten';
+const listOf=t=>({reservering:'reserveringen',tankbeurt:'tankbeurten',rit:'ritten'})[t];
 async function add(type,item){
   const k=listOf(type), tmp={...item,id:'tmp'+Date.now()};
   data[k].push(tmp);render();
@@ -127,13 +150,13 @@ function renderAgenda(){
   ['ma','di','wo','do','vr','za','zo'].forEach(d=>h+=`<b>${d}</b>`);
   h+='<i></i>'.repeat(off);
   for(let d=1;d<=n;d++){
-    const k=iso(new Date(y,m,d)), c=[...new Set(data.reserveringen.filter(r=>r.datum===k).map(r=>COL[r.persoon]))];
+    const k=iso(new Date(y,m,d)), c=[...new Set(data.reserveringen.filter(r=>cov(r,k)).map(r=>COL[r.persoon]))];
     const bg=c.length>1?`linear-gradient(135deg,${c[0]} 50%,${c[1]} 50%)`:c[0]||'';
     h+=`<button class="day${c.length?' res':''}${k===today?' today':''}" data-act="day" data-d="${k}"${bg?` style="background:${bg}"`:''}>${d}</button>`;
   }
   h+='</div><h3>Komende reserveringen</h3>';
-  const up=data.reserveringen.filter(r=>r.datum>=today).sort((a,b)=>a.datum.localeCompare(b.datum)).slice(0,6);
-  h+=up.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${fd(r.datum)}</b>, ${r.persoon}${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div></div>`).join('')||'<p class="mute">Nog niets gereserveerd. Tik op een dag om te reserveren.</p>';
+  const up=data.reserveringen.filter(r=>(r.eind||r.datum)>=today).sort((a,b)=>a.datum.localeCompare(b.datum)).slice(0,6);
+  h+=up.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${multi(r)?tspan(r):fd(r.datum)+', '+tspan(r)}</b>, ${r.persoon}${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div></div>`).join('')||'<p class="mute">Nog niets gereserveerd. Tik op een dag om te reserveren.</p>';
   $('#agenda').innerHTML=h;
 }
 function stats(){
@@ -151,19 +174,39 @@ function renderTanken(){
   h+='<h3>Tankbeurten</h3>'+(data.tankbeurten.slice().sort((a,b)=>(b.datum||'').localeCompare(a.datum||'')).map(x=>`<div class="row"><i style="background:${COL[x.persoon]}"></i><div><b>${fd(x.datum)}</b>, ${x.persoon}<br><small>${x.liters} L, ${eur(+x.bedrag||0)}${+x.kilometerstand?`, ${x.kilometerstand} km`:''}</small></div><button data-act="delt" data-id="${x.id}" aria-label="Verwijderen">×</button></div>`).join('')||'<p class="mute">Nog geen tankbeurten.</p>');
   $('#tlist').innerHTML=h;
 }
+function ritStats(){
+  const r=data.ritten.filter(x=>+x.kmstand).sort((a,b)=>a.kmstand-b.kmstand),km={Joppe:0,Iebe:0},paid={Joppe:0,Iebe:0};
+  for(let i=1;i<r.length;i++){const d=r[i].kmstand-r[i-1].kmstand;
+    if(r[i].persoon==='Beide'){km.Joppe+=d/2;km.Iebe+=d/2}else if(km[r[i].persoon]!==undefined)km[r[i].persoon]+=d}
+  data.tankbeurten.forEach(x=>{if(paid[x.persoon]!==undefined)paid[x.persoon]+=+x.bedrag||0});
+  const total=km.Joppe+km.Iebe,cost=paid.Joppe+paid.Iebe,rate=total>0?cost/total:0;
+  return{km,paid,total,cost,rate,bal:paid.Joppe-km.Joppe*rate};
+}
+function renderRitten(){
+  const s=ritStats(),n=data.ritten.length;let h='';
+  if(n<2)h+=`<p class="mute" style="margin:6px 0 10px">${n?'Startstand genoteerd. Vanaf de volgende foto tellen de kilometers.':'Maak een eerste foto als startstand. Daarna telt elke foto de kilometers sinds de vorige.'}</p>`;
+  else{
+    const ab=Math.abs(s.bal);
+    h+=`<div class="owe">${ab<.005?'Alles is in evenwicht':(s.bal>0?'Iebe betaalt Joppe ':'Joppe betaalt Iebe ')+eur(ab)}<small>${Math.round(s.total)} km gereden, brandstof ${eur(s.cost)}, ${(s.rate*100).toFixed(1)} cent per km</small></div>`;
+    h+=`<div class="stats">${NAMES.map(x=>`<div class="stat" style="--c:${COL[x]}"><b>${x}</b><span>${Math.round(s.km[x])} km gereden</span><span>${eur(s.paid[x])} getankt</span></div>`).join('')}</div>`;
+  }
+  h+='<h3>Kilometerstanden</h3>'+(data.ritten.slice().sort((a,b)=>b.kmstand-a.kmstand).map(x=>`<div class="row"><i style="background:${COL[x.persoon]}"></i><div><b>${x.kmstand} km</b>, ${x.persoon}<br><small>${fd(x.datum)}</small></div><button data-act="delrit" data-id="${x.id}" aria-label="Verwijderen">×</button></div>`).join('')||'<p class="mute">Nog geen ritten.</p>');
+  $('#rlist').innerHTML=h;
+}
+function shrink(file){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8).split(',')[1])};im.onerror=no;im.src=URL.createObjectURL(file)})}
 function render(){
   $('#me').textContent=cfg.me||'Wie ben jij?';
   $('#me').style.background=COL[cfg.me]||'#6b7788';
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
-  $('#agenda').hidden=view!=='agenda';$('#tanken').hidden=view!=='tanken';
-  renderAgenda();renderTanken();
+  $('#agenda').hidden=view!=='agenda';$('#tanken').hidden=view!=='tanken';$('#ritten').hidden=view!=='ritten';
+  renderAgenda();renderRitten();renderTanken();
 }
 function sheet(html){$('#sheet').innerHTML=html;document.body.classList.add('open')}
 function daySheet(k){
-  const rs=data.reserveringen.filter(r=>r.datum===k);
+  const rs=data.reserveringen.filter(r=>cov(r,k));
   sheet(`<h2>${new Date(k+'T00:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</h2>`
-   +(rs.length?rs.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${r.persoon}</b>${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div><button data-act="delr" data-id="${r.id}" data-d="${k}" aria-label="Annuleren">×</button></div>`).join(''):'<p class="mute" style="margin-bottom:10px">Deze dag is vrij.</p>')
-   +`<input class="field" id="note" placeholder="Opmerking (bv. avond, weekend)"><div class="seg" style="margin-top:10px">${NAMES.map(n=>`<label style="--c:${COL[n]}"><button class="go" style="background:${COL[n]};margin:0" data-act="resv" data-n="${n}" data-d="${k}">Voor ${n}</button></label>`).join('')}</div>`);
+   +(rs.length?rs.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${r.persoon}</b>, ${tspan(r)}${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div><button data-act="delr" data-id="${r.id}" data-d="${k}" aria-label="Annuleren">×</button></div>`).join(''):'<p class="mute" style="margin-bottom:10px">Deze dag is vrij.</p>')
+   +`<div class="f" style="grid-template-columns:1fr;margin-bottom:8px"><label>Tot en met (leeg laten = zelfde dag)<input type="date" id="te" min="${k}"></label></div><div class="f"><label>Van<input type="time" id="tv"></label><label>Tot<input type="time" id="tt"></label></div><p class="mute" style="margin:4px 0 8px;font-size:.85rem">Tijden leeg laten betekent de hele dag. Bij meerdere dagen is Van het uur op de eerste dag en Tot het uur op de laatste dag.</p><input class="field" id="note" placeholder="Opmerking (bv. boodschappen)"><div class="seg" style="margin-top:10px">${NAMES.map(n=>`<label style="--c:${COL[n]}"><button class="go" style="background:${COL[n]};margin:0" data-act="resv" data-n="${n}" data-d="${k}">Voor ${n}</button></label>`).join('')}</div>`);
 }
 function setupSheet(){
   sheet(`<h2>Instellingen</h2><p class="mute" style="margin-bottom:8px">Wie ben jij?</p>${who('me',cfg.me)}<p class="mute" style="margin-bottom:4px">Geheime sleutel</p><input class="field" id="kk" type="password" value="${cfg.key}" autocomplete="off"><button class="go" data-act="savecfg">Opslaan</button>`);
@@ -177,17 +220,41 @@ document.addEventListener('click',e=>{
   else if(a==='day')daySheet(d.d);
   else if(a==='close')document.body.classList.remove('open');
   else if(a==='setup')setupSheet();
-  else if(a==='savecfg'){cfg.me=pick('me')||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);document.body.classList.remove('open');$('#tp').innerHTML=who('tp',cfg.me);render();sync()}
-  else if(a==='resv'){add('reservering',{datum:d.d,persoon:d.n,opmerking:$('#note').value.trim()});document.body.classList.remove('open')}
+  else if(a==='savecfg'){cfg.me=pick('me')||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);document.body.classList.remove('open');$('#tp').innerHTML=who('tp',cfg.me);$('#rp').innerHTML=who('rp',cfg.me,[...NAMES,'Beide']);render();sync()}
+  else if(a==='resv'){
+    const van=$('#tv').value,tot=$('#tt').value,eind=$('#te').value,md=eind&&eind>d.d;
+    if(eind&&eind<d.d){toast('De einddatum ligt voor de begindatum.');return}
+    if(!md&&((van&&!tot)||(!van&&tot)||(van&&tot<=van))){toast('Kies een geldig tijdstip (van vroeger dan tot), of laat beide leeg.');return}
+    const nr={datum:d.d,eind:md?eind:'',persoon:d.n,van,tot,opmerking:$('#note').value.trim()},[a1,b1]=rng(nr);
+    const c=data.reserveringen.find(r=>a1<rng(r)[1]&&rng(r)[0]<b1);
+    if(c){toast('Overlapt met '+c.persoon+' ('+tspan(c)+').');return}
+    add('reservering',nr);document.body.classList.remove('open')}
   else if(a==='delr'){del('reservering',d.id);setTimeout(()=>daySheet(d.d),0)}
   else if(a==='delt'){if(confirm('Deze tankbeurt verwijderen?'))del('tankbeurt',d.id)}
+  else if(a==='delrit'){if(confirm('Deze kilometerstand verwijderen?'))del('rit',d.id)}
+});
+$('#rf').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  $('#rs').textContent='Foto wordt afgelezen...';
+  try{
+    const j=await call({action:'odometer',image:await shrink(f)});
+    $('#rk').value=j.km;$('#rs').textContent='Afgelezen: '+j.km+' km. Controleer of dit klopt.';
+  }catch(err){$('#rs').textContent='Aflezen lukte niet ('+err.message+'). Typ de kilometerstand zelf in.'}
+  e.target.value='';
+});
+$('#rf2').addEventListener('submit',e=>{
+  e.preventDefault();
+  const km=+$('#rk').value,last=Math.max(0,...data.ritten.map(x=>+x.kmstand||0));
+  if(last>0&&km<=last){toast('Deze stand moet hoger zijn dan de vorige ('+last+' km).');return}
+  add('rit',{datum:iso(new Date()),persoon:pick('rp'),kmstand:km});
+  $('#rk').value='';$('#rs').textContent='';
 });
 $('#tf').addEventListener('submit',e=>{
   e.preventDefault();
   add('tankbeurt',{datum:$('#td').value,persoon:pick('tp'),liters:+$('#tl').value,bedrag:+$('#tb').value,kilometerstand:+$('#tk').value||''});
   ['tl','tb','tk'].forEach(i=>$('#'+i).value='');
 });
-$('#td').value=today;$('#tp').innerHTML=who('tp',cfg.me);
+$('#td').value=today;$('#tp').innerHTML=who('tp',cfg.me);$('#rp').innerHTML=who('rp',cfg.me,[...NAMES,'Beide']);
 render();
 if(!cfg.key||!cfg.me)setupSheet();else sync();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
