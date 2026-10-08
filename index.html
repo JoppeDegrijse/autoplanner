@@ -16,7 +16,15 @@ button,input{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
 header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px}
 h1{font-size:1.35rem;letter-spacing:-.02em}
-#me{color:#fff;padding:6px 14px;border-radius:99px;font-weight:600;font-size:.9rem}
+.hw,#me{display:flex;gap:6px;align-items:center}
+#me button{padding:6px 13px;border-radius:99px;font-weight:600;font-size:.9rem;border:2px solid var(--c,#9aa5b5);color:var(--c,var(--mute))}
+#me button.on{background:var(--c);color:#fff}
+#me button[data-act=setup]{padding:4px 8px;border-color:transparent;font-size:1.2rem}
+.chk{display:flex;align-items:center;gap:10px;margin:8px 0;font-weight:500}
+.chk input{width:22px;height:22px;accent-color:var(--ink)}
+.dt{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px}
+.dt .field{margin-top:2px}
+.allday .tm{display:none}
 main{flex:1;overflow-y:auto;padding:8px 16px 24px}
 nav{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border-top:1px solid var(--line);padding-bottom:var(--bot)}
 nav button{padding:14px;font-weight:600;color:var(--mute);border-top:3px solid transparent}
@@ -66,7 +74,7 @@ body.open #sheet{transform:none}
 </style>
 </head>
 <body>
-<header><h1>Autoplanner</h1><button id="me" data-act="setup"></button></header>
+<header><h1>Autoplanner</h1><div id="me"></div></header>
 <main>
   <section id="agenda"></section>
   <section id="ritten" hidden>
@@ -74,7 +82,7 @@ body.open #sheet{transform:none}
     <form id="rf2">
       <label class="file">Foto van de kilometerteller<input type="file" id="rf" accept="image/*" capture="environment"></label>
       <p id="rs" class="mute"></p>
-      <div id="rp"></div>
+      <label class="chk"><input type="checkbox" id="rb"> Wij reden allebei sinds de vorige foto</label>
       <div class="f" style="grid-template-columns:1fr"><label>Kilometerstand<input type="number" id="rk" min="0" inputmode="numeric" required></label></div>
       <button class="go">Rit opslaan</button>
     </form>
@@ -82,7 +90,6 @@ body.open #sheet{transform:none}
   </section>
   <section id="tanken" hidden>
     <form id="tf">
-      <div id="tp"></div>
       <div class="f">
         <label>Datum<input type="date" id="td" required></label>
         <label>Liters<input type="number" id="tl" step="0.01" min="0" inputmode="decimal" required></label>
@@ -115,6 +122,7 @@ const rng=r=>[dn(r.datum)*1440+(r.van?mins(r.van):0),dn(r.eind||r.datum)*1440+(r
 const eur=n=>n.toLocaleString('nl-BE',{style:'currency',currency:'EUR'});
 const who=(name,sel,list=NAMES)=>`<div class="seg${list.length>2?' three':''}">${list.map(n=>`<label style="--c:${COL[n]}"><input type="radio" name="${name}" value="${n}" ${n===sel?'checked':''}><span>${n}</span></label>`).join('')}</div>`;
 const pick=name=>(document.querySelector(`input[name=${name}]:checked`)||{}).value;
+const needMe=()=>{if(!cfg.me){toast('Kies bovenaan eerst Joppe of Iebe.');return true}};
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),3200)}
 const save=()=>LS.setItem('ap_data',JSON.stringify(data));
 
@@ -123,7 +131,7 @@ async function sync(){
   try{
     const j=await (await fetch(API+'?key='+encodeURIComponent(cfg.key))).json();
     if(pending)return;
-    if(j.error){toast(j.error==='Geen toegang'?'Sleutel klopt niet. Pas hem aan via je naam rechtsboven.':j.error);return}
+    if(j.error){toast(j.error==='Geen toegang'?'Sleutel klopt niet. Pas hem aan via het tandwiel rechtsboven.':j.error);return}
     data={ritten:[],...j};save();render();
   }catch(e){toast('Geen verbinding. Je ziet de laatst bewaarde gegevens.')}
 }
@@ -196,8 +204,8 @@ function renderRitten(){
 }
 function shrink(file){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8).split(',')[1])};im.onerror=no;im.src=URL.createObjectURL(file)})}
 function render(){
-  $('#me').textContent=cfg.me||'Wie ben jij?';
-  $('#me').style.background=COL[cfg.me]||'#6b7788';
+  $('#me').innerHTML=NAMES.map(n=>`<button data-act="who" data-n="${n}" class="${n===cfg.me?'on':''}" style="--c:${COL[n]}">${n}</button>`).join('')+'<button data-act="setup" aria-label="Instellingen">⚙</button>';
+  
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   $('#agenda').hidden=view!=='agenda';$('#tanken').hidden=view!=='tanken';$('#ritten').hidden=view!=='ritten';
   renderAgenda();renderRitten();renderTanken();
@@ -206,11 +214,16 @@ function sheet(html){$('#sheet').innerHTML=html;document.body.classList.add('ope
 function daySheet(k){
   const rs=data.reserveringen.filter(r=>cov(r,k));
   sheet(`<h2>${new Date(k+'T00:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</h2>`
-   +(rs.length?rs.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${r.persoon}</b>, ${tspan(r)}${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div><button data-act="delr" data-id="${r.id}" data-d="${k}" aria-label="Annuleren">×</button></div>`).join(''):'<p class="mute" style="margin-bottom:10px">Deze dag is vrij.</p>')
-   +`<div class="f" style="grid-template-columns:1fr;margin-bottom:8px"><label>Tot en met (leeg laten = zelfde dag)<input type="date" id="te" min="${k}"></label></div><div class="f"><label>Van<input type="time" id="tv"></label><label>Tot<input type="time" id="tt"></label></div><p class="mute" style="margin:4px 0 8px;font-size:.85rem">Tijden leeg laten betekent de hele dag. Bij meerdere dagen is Van het uur op de eerste dag en Tot het uur op de laatste dag.</p><input class="field" id="note" placeholder="Opmerking (bv. boodschappen)"><div class="seg" style="margin-top:10px">${NAMES.map(n=>`<label style="--c:${COL[n]}"><button class="go" style="background:${COL[n]};margin:0" data-act="resv" data-n="${n}" data-d="${k}">Voor ${n}</button></label>`).join('')}</div>`);
+   +(rs.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${r.persoon}</b>, ${tspan(r)}${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div><button data-act="delr" data-id="${r.id}" data-d="${k}" aria-label="Annuleren">×</button></div>`).join('')||'<p class="mute">Deze dag is vrij.</p>')
+   +`<div id="rv" class="allday"><h3 style="margin:14px 0 8px">Nieuwe reservering</h3>
+   <label class="chk"><input type="checkbox" id="ad" checked> Hele dag</label>
+   <div class="mute" style="font-size:.85rem">Van</div><div class="dt"><input class="field" type="date" id="ds" value="${k}"><input class="field tm" type="time" id="ts" value="09:00"></div>
+   <div class="mute" style="font-size:.85rem">Tot</div><div class="dt"><input class="field" type="date" id="de" value="${k}" min="${k}"><input class="field tm" type="time" id="te" value="10:00"></div>
+   <input class="field" id="note" placeholder="Opmerking (bv. boodschappen)">
+   <button class="go" style="background:${COL[cfg.me]||'var(--ink)'}" data-act="resv">Reserveren${cfg.me?' voor '+cfg.me:''}</button></div>`);
 }
 function setupSheet(){
-  sheet(`<h2>Instellingen</h2><p class="mute" style="margin-bottom:8px">Wie ben jij?</p>${who('me',cfg.me)}<p class="mute" style="margin-bottom:4px">Geheime sleutel</p><input class="field" id="kk" type="password" value="${cfg.key}" autocomplete="off"><button class="go" data-act="savecfg">Opslaan</button>`);
+  sheet(`<h2>Instellingen</h2>${cfg.me?'':'<p class="mute" style="margin-bottom:8px">Wie ben jij?</p>'+who('me',cfg.me)}<p class="mute" style="margin-bottom:4px">Geheime sleutel</p><input class="field" id="kk" type="password" value="${cfg.key}" autocomplete="off"><button class="go" data-act="savecfg">Opslaan</button>`);
 }
 document.addEventListener('click',e=>{
   const nv=e.target.closest('nav button');
@@ -221,12 +234,14 @@ document.addEventListener('click',e=>{
   else if(a==='day')daySheet(d.d);
   else if(a==='close')document.body.classList.remove('open');
   else if(a==='setup')setupSheet();
-  else if(a==='savecfg'){cfg.me=pick('me')||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);document.body.classList.remove('open');$('#tp').innerHTML=who('tp',cfg.me);$('#rp').innerHTML=who('rp',cfg.me,[...NAMES,'Beide']);render();sync()}
+  else if(a==='who'){cfg.me=d.n;LS.setItem('ap_me',cfg.me);render()}
+  else if(a==='savecfg'){cfg.me=pick('me')||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);document.body.classList.remove('open');render();sync()}
   else if(a==='resv'){
-    const van=$('#tv').value,tot=$('#tt').value,eind=$('#te').value,md=eind&&eind>d.d;
-    if(eind&&eind<d.d){toast('De einddatum ligt voor de begindatum.');return}
-    if(!md&&((van&&!tot)||(!van&&tot)||(van&&tot<=van))){toast('Kies een geldig tijdstip (van vroeger dan tot), of laat beide leeg.');return}
-    const nr={datum:d.d,eind:md?eind:'',persoon:d.n,van,tot,opmerking:$('#note').value.trim()},[a1,b1]=rng(nr);
+    if(needMe())return;
+    const ad=$('#ad').checked,ds=$('#ds').value,de=$('#de').value||ds,ts=ad?'':$('#ts').value,te=ad?'':$('#te').value;
+    if(!ds){toast('Kies een begindatum.');return}
+    if(de<ds||(!ad&&(!ts||!te||(de===ds&&te<=ts)))){toast('Het einde moet na het begin liggen.');return}
+    const nr={datum:ds,eind:de>ds?de:'',persoon:cfg.me,van:ts,tot:te,opmerking:$('#note').value.trim()},[a1,b1]=rng(nr);
     const c=data.reserveringen.find(r=>a1<rng(r)[1]&&rng(r)[0]<b1);
     if(c){toast('Overlapt met '+c.persoon+' ('+tspan(c)+').');return}
     add('reservering',nr);document.body.classList.remove('open')}
@@ -247,15 +262,22 @@ $('#rf2').addEventListener('submit',e=>{
   e.preventDefault();
   const km=+$('#rk').value,last=Math.max(0,...data.ritten.map(x=>+x.kmstand||0));
   if(last>0&&km<=last){toast('Deze stand moet hoger zijn dan de vorige ('+last+' km).');return}
-  add('rit',{datum:iso(new Date()),persoon:pick('rp'),kmstand:km});
-  $('#rk').value='';$('#rs').textContent='';
+  if(needMe())return;
+  add('rit',{datum:iso(new Date()),persoon:$('#rb').checked?'Beide':cfg.me,kmstand:km});
+  $('#rb').checked=false;$('#rk').value='';$('#rs').textContent='';
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='ad')$('#rv').classList.toggle('allday',t.checked);
+  if(t.id==='ds'&&t.value){const de=$('#de');de.min=t.value;if(!de.value||de.value<t.value)de.value=t.value}
 });
 $('#tf').addEventListener('submit',e=>{
   e.preventDefault();
-  add('tankbeurt',{datum:$('#td').value,persoon:pick('tp'),liters:+$('#tl').value,bedrag:+$('#tb').value,kilometerstand:+$('#tk').value||''});
+  if(needMe())return;
+  add('tankbeurt',{datum:$('#td').value,persoon:cfg.me,liters:+$('#tl').value,bedrag:+$('#tb').value,kilometerstand:+$('#tk').value||''});
   ['tl','tb','tk'].forEach(i=>$('#'+i).value='');
 });
-$('#td').value=today;$('#tp').innerHTML=who('tp',cfg.me);$('#rp').innerHTML=who('rp',cfg.me,[...NAMES,'Beide']);
+$('#td').value=today;
 render();
 if(!cfg.key||!cfg.me)setupSheet();else sync();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
