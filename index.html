@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#16202e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>Autoplanner</title>
+<style>
+:root{--blue:#2457c5;--orange:#f08a1c;--ink:#16202e;--mute:#6b7788;--line:#dde3ec;--bg:#eef1f6;--card:#fff;--bot:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px}
+h1{font-size:1.35rem;letter-spacing:-.02em}
+#me{color:#fff;padding:6px 14px;border-radius:99px;font-weight:600;font-size:.9rem}
+main{flex:1;overflow-y:auto;padding:8px 16px 24px}
+nav{display:grid;grid-template-columns:1fr 1fr;background:var(--card);border-top:1px solid var(--line);padding-bottom:var(--bot)}
+nav button{padding:14px;font-weight:600;color:var(--mute);border-top:3px solid transparent}
+nav button.on{color:var(--ink);border-top-color:var(--ink)}
+.mnav{display:flex;align-items:center;justify-content:space-between;margin:6px 0 10px}
+.mnav h2{font-size:1.5rem;letter-spacing:-.03em;text-transform:capitalize}
+.mnav button{font-size:1.8rem;width:44px;height:44px;border-radius:12px;background:var(--card)}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.grid>b{text-align:center;color:var(--mute);font-size:.8rem;font-weight:500;padding-bottom:2px}
+.day{aspect-ratio:1/1.1;border-radius:12px;background:var(--card);font-weight:600;display:flex;align-items:center;justify-content:center}
+.day.res{color:#fff}
+.day.today{outline:2.5px solid var(--ink);outline-offset:1px}
+h3{margin:22px 0 8px;font-size:1.05rem}
+.row{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:12px;padding:10px 12px;margin-bottom:6px}
+.row>i{width:6px;align-self:stretch;border-radius:3px}
+.row>div{flex:1}
+.row small,.mute{color:var(--mute)}
+.row button{font-size:1.5rem;width:40px;height:40px;color:var(--mute)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0}
+.seg span{display:block;text-align:center;padding:12px;border-radius:12px;border:2px solid var(--c);color:var(--c);font-weight:600}
+.seg input:checked+span{background:var(--c);color:#fff}
+.seg input:focus-visible+span{outline:3px solid var(--ink)}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.f label{display:block;font-size:.85rem;color:var(--mute)}
+.f input,.field{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);margin-top:2px}
+.go{width:100%;margin-top:12px;padding:14px;border-radius:12px;background:var(--ink);color:#fff;font-weight:600}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0 6px}
+.stat{background:var(--c);color:#fff;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column}
+.stat b{font-size:1.05rem}
+#scrim{position:fixed;inset:0;background:#0007;opacity:0;pointer-events:none;transition:opacity .2s}
+#sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px calc(20px + var(--bot));transform:translateY(105%);transition:transform .22s ease;max-height:85%;overflow-y:auto}
+body.open #scrim{opacity:1;pointer-events:auto}
+body.open #sheet{transform:none}
+#sheet h2{font-size:1.2rem;margin-bottom:10px;text-transform:capitalize}
+.warn{background:#fff3e0;border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:.9rem}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(80px + var(--bot));background:var(--ink);color:#fff;padding:12px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><h1>Autoplanner</h1><button id="me" data-act="setup"></button></header>
+<main>
+  <section id="agenda"></section>
+  <section id="tanken" hidden>
+    <form id="tf">
+      <div id="tp"></div>
+      <div class="f">
+        <label>Datum<input type="date" id="td" required></label>
+        <label>Liters<input type="number" id="tl" step="0.01" min="0" inputmode="decimal" required></label>
+        <label>Bedrag (€)<input type="number" id="tb" step="0.01" min="0" inputmode="decimal" required></label>
+        <label>Kilometerstand<input type="number" id="tk" min="0" inputmode="numeric"></label>
+      </div>
+      <button class="go">Tankbeurt opslaan</button>
+    </form>
+    <div id="tlist"></div>
+  </section>
+</main>
+<nav><button data-v="agenda" class="on">Agenda</button><button data-v="tanken">Tanken</button></nav>
+<div id="scrim" data-act="close"></div><div id="sheet"></div><div id="toast"></div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbwXCURVE-CWmnbBivbrDVDPMOGWioOzEtv3KyPxfIwicBauJTVISnl2UIKHdV10Bjca/exec';
+const $=s=>document.querySelector(s), LS=localStorage;
+const NAMES=['Joppe','Iebe'], COL={Joppe:'#2457c5',Iebe:'#f08a1c'};
+const cfg={key:LS.getItem('ap_key')||'',me:LS.getItem('ap_me')||''};
+let data=JSON.parse(LS.getItem('ap_data')||'{"reserveringen":[],"tankbeurten":[]}');
+let view='agenda', cur=new Date(); cur.setDate(1);
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=iso(new Date());
+const fd=k=>new Date(k+'T00:00').toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
+const eur=n=>n.toLocaleString('nl-BE',{style:'currency',currency:'EUR'});
+const who=(name,sel)=>`<div class="seg">${NAMES.map(n=>`<label style="--c:${COL[n]}"><input type="radio" name="${name}" value="${n}" ${n===sel?'checked':''}><span>${n}</span></label>`).join('')}</div>`;
+const pick=name=>(document.querySelector(`input[name=${name}]:checked`)||{}).value;
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),3200)}
+const save=()=>LS.setItem('ap_data',JSON.stringify(data));
+
+async function sync(){
+  if(!cfg.key)return;
+  try{
+    const j=await (await fetch(API+'?key='+encodeURIComponent(cfg.key))).json();
+    if(j.error){toast(j.error==='Geen toegang'?'Sleutel klopt niet. Pas hem aan via je naam rechtsboven.':j.error);return}
+    data=j;save();render();
+  }catch(e){toast('Geen verbinding. Je ziet de laatst bewaarde gegevens.')}
+}
+async function call(body){
+  const j=await (await fetch(API,{method:'POST',body:JSON.stringify({key:cfg.key,...body})})).json();
+  if(j.error)throw new Error(j.error);return j;
+}
+const listOf=t=>t==='reservering'?'reserveringen':'tankbeurten';
+async function add(type,item){
+  const k=listOf(type), tmp={...item,id:'tmp'+Date.now()};
+  data[k].push(tmp);render();
+  try{const j=await call({action:'add',type,data:item});tmp.id=j.id;save()}
+  catch(e){data[k]=data[k].filter(x=>x!==tmp);render();toast('Opslaan mislukt: '+e.message)}
+}
+async function del(type,id){
+  const k=listOf(type), old=data[k];
+  data[k]=old.filter(x=>x.id!==id);render();
+  try{await call({action:'delete',type,id});save()}
+  catch(e){data[k]=old;render();toast('Verwijderen mislukt')}
+}
+
+function renderAgenda(){
+  const y=cur.getFullYear(),m=cur.getMonth(),off=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();
+  let h=`<div class="mnav"><button data-act="prev" aria-label="Vorige maand">‹</button><h2>${cur.toLocaleDateString('nl-BE',{month:'long',year:'numeric'})}</h2><button data-act="next" aria-label="Volgende maand">›</button></div><div class="grid">`;
+  ['ma','di','wo','do','vr','za','zo'].forEach(d=>h+=`<b>${d}</b>`);
+  h+='<i></i>'.repeat(off);
+  for(let d=1;d<=n;d++){
+    const k=iso(new Date(y,m,d)), c=[...new Set(data.reserveringen.filter(r=>r.datum===k).map(r=>COL[r.persoon]))];
+    const bg=c.length>1?`linear-gradient(135deg,${c[0]} 50%,${c[1]} 50%)`:c[0]||'';
+    h+=`<button class="day${c.length?' res':''}${k===today?' today':''}" data-act="day" data-d="${k}"${bg?` style="background:${bg}"`:''}>${d}</button>`;
+  }
+  h+='</div><h3>Komende reserveringen</h3>';
+  const up=data.reserveringen.filter(r=>r.datum>=today).sort((a,b)=>a.datum.localeCompare(b.datum)).slice(0,6);
+  h+=up.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${fd(r.datum)}</b>, ${r.persoon}${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div></div>`).join('')||'<p class="mute">Nog niets gereserveerd. Tik op een dag om te reserveren.</p>';
+  $('#agenda').innerHTML=h;
+}
+function stats(){
+  const per={Joppe:{l:0,e:0},Iebe:{l:0,e:0}};
+  data.tankbeurten.forEach(x=>{const p=per[x.persoon];if(p){p.l+=+x.liters||0;p.e+=+x.bedrag||0}});
+  const km=data.tankbeurten.filter(x=>+x.kilometerstand).sort((a,b)=>a.kilometerstand-b.kilometerstand);
+  let avg=null;
+  if(km.length>1){const dist=km[km.length-1].kilometerstand-km[0].kilometerstand,l=km.slice(1).reduce((s,x)=>s+(+x.liters||0),0);if(dist>0)avg=l/dist*100}
+  return{per,avg};
+}
+function renderTanken(){
+  const{per,avg}=stats();
+  let h=`<div class="stats">${NAMES.map(n=>`<div class="stat" style="--c:${COL[n]}"><b>${n}</b><span>${per[n].l.toFixed(1)} L getankt</span><span>${eur(per[n].e)}</span></div>`).join('')}</div>`;
+  if(avg)h+=`<p class="mute">Gemiddeld verbruik: ${avg.toFixed(1)} L/100 km (schatting)</p>`;
+  h+='<h3>Tankbeurten</h3>'+(data.tankbeurten.slice().sort((a,b)=>(b.datum||'').localeCompare(a.datum||'')).map(x=>`<div class="row"><i style="background:${COL[x.persoon]}"></i><div><b>${fd(x.datum)}</b>, ${x.persoon}<br><small>${x.liters} L, ${eur(+x.bedrag||0)}${+x.kilometerstand?`, ${x.kilometerstand} km`:''}</small></div><button data-act="delt" data-id="${x.id}" aria-label="Verwijderen">×</button></div>`).join('')||'<p class="mute">Nog geen tankbeurten.</p>');
+  $('#tlist').innerHTML=h;
+}
+function render(){
+  $('#me').textContent=cfg.me||'Wie ben jij?';
+  $('#me').style.background=COL[cfg.me]||'#6b7788';
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+  $('#agenda').hidden=view!=='agenda';$('#tanken').hidden=view!=='tanken';
+  renderAgenda();renderTanken();
+}
+function sheet(html){$('#sheet').innerHTML=html;document.body.classList.add('open')}
+function daySheet(k){
+  const rs=data.reserveringen.filter(r=>r.datum===k);
+  sheet(`<h2>${new Date(k+'T00:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</h2>`
+   +(rs.length?rs.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${r.persoon}</b>${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div><button data-act="delr" data-id="${r.id}" data-d="${k}" aria-label="Annuleren">×</button></div>`).join(''):'<p class="mute" style="margin-bottom:10px">Deze dag is vrij.</p>')
+   +`<input class="field" id="note" placeholder="Opmerking (bv. avond, weekend)"><div class="seg" style="margin-top:10px">${NAMES.map(n=>`<label style="--c:${COL[n]}"><button class="go" style="background:${COL[n]};margin:0" data-act="resv" data-n="${n}" data-d="${k}">Voor ${n}</button></label>`).join('')}</div>`);
+}
+function setupSheet(){
+  sheet(`<h2>Instellingen</h2><p class="mute" style="margin-bottom:8px">Wie ben jij?</p>${who('me',cfg.me)}<p class="mute" style="margin-bottom:4px">Geheime sleutel</p><input class="field" id="kk" type="password" value="${cfg.key}" autocomplete="off"><button class="go" data-act="savecfg">Opslaan</button>`);
+}
+document.addEventListener('click',e=>{
+  const nv=e.target.closest('nav button');
+  if(nv){view=nv.dataset.v;render();return}
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act,d=b.dataset;
+  if(a==='prev'||a==='next'){cur.setMonth(cur.getMonth()+(a==='next'?1:-1));render()}
+  else if(a==='day')daySheet(d.d);
+  else if(a==='close')document.body.classList.remove('open');
+  else if(a==='setup')setupSheet();
+  else if(a==='savecfg'){cfg.me=pick('me')||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);document.body.classList.remove('open');$('#tp').innerHTML=who('tp',cfg.me);render();sync()}
+  else if(a==='resv'){add('reservering',{datum:d.d,persoon:d.n,opmerking:$('#note').value.trim()});document.body.classList.remove('open')}
+  else if(a==='delr'){del('reservering',d.id);setTimeout(()=>daySheet(d.d),0)}
+  else if(a==='delt'){if(confirm('Deze tankbeurt verwijderen?'))del('tankbeurt',d.id)}
+});
+$('#tf').addEventListener('submit',e=>{
+  e.preventDefault();
+  add('tankbeurt',{datum:$('#td').value,persoon:pick('tp'),liters:+$('#tl').value,bedrag:+$('#tb').value,kilometerstand:+$('#tk').value||''});
+  ['tl','tb','tk'].forEach(i=>$('#'+i).value='');
+});
+$('#td').value=today;$('#tp').innerHTML=who('tp',cfg.me);
+render();
+if(!cfg.key||!cfg.me)setupSheet();else sync();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
