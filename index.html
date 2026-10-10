@@ -3,127 +3,116 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#16202e">
+<meta name="theme-color" content="#F5F2FF">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
 <title>Autoplanner</title>
 <style>
-:root{--blue:#2457c5;--orange:#f08a1c;--ink:#16202e;--mute:#6b7788;--line:#dde3ec;--bg:#eef1f6;--card:#fff;--bot:env(safe-area-inset-bottom,0px)}
-*{box-sizing:border-box;margin:0}
-html,body{height:100%}
-body{font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
-button,input{font:inherit;color:inherit}
-button{cursor:pointer;border:0;background:none}
-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px}
-h1{font-size:1.35rem;letter-spacing:-.02em}
-.hw,#me{display:flex;gap:6px;align-items:center}
-#me button{padding:6px 13px;border-radius:99px;font-weight:600;font-size:.9rem;border:2px solid var(--c,#9aa5b5);color:var(--c,var(--mute))}
-#me button.on{background:var(--c);color:#fff}
-#me button[data-act=setup]{padding:4px 8px;border-color:transparent;font-size:1.2rem}
-.chk{display:flex;align-items:center;gap:10px;margin:8px 0;font-weight:500}
-.chk input{width:22px;height:22px;accent-color:var(--ink)}
-.dt{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px}
-.dt .field{margin-top:2px}
-.allday .tm{display:none}
-main{flex:1;overflow-y:auto;padding:8px 16px 24px}
-nav{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border-top:1px solid var(--line);padding-bottom:var(--bot)}
-nav button{padding:14px;font-weight:600;color:var(--mute);border-top:3px solid transparent}
-nav button.on{color:var(--ink);border-top-color:var(--ink)}
-.mnav{display:flex;align-items:center;justify-content:space-between;margin:6px 0 10px}
-.mnav h2{font-size:1.5rem;letter-spacing:-.03em;text-transform:capitalize}
-.mnav button{font-size:1.8rem;width:44px;height:44px;border-radius:12px;background:var(--card)}
-.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.grid>b{text-align:center;color:var(--mute);font-size:.8rem;font-weight:500;padding-bottom:2px}
-.day{aspect-ratio:1/1.1;border-radius:12px;background:var(--card);font-weight:600;display:flex;align-items:center;justify-content:center}
-.day.res{color:#fff}
-.day.today{outline:2.5px solid var(--ink);outline-offset:1px}
-h3{margin:22px 0 8px;font-size:1.05rem}
-.row{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:12px;padding:10px 12px;margin-bottom:6px}
-.row>i{width:6px;align-self:stretch;border-radius:3px}
-.row>div{flex:1}
-.row small,.mute{color:var(--mute)}
-.row button{font-size:1.5rem;width:40px;height:40px;color:var(--mute)}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.seg label{position:relative}
-.seg input{position:absolute;opacity:0}
-.seg span{display:block;text-align:center;padding:12px;border-radius:12px;border:2px solid var(--c);color:var(--c);font-weight:600}
-.seg input:checked+span{background:var(--c);color:#fff}
-.seg input:focus-visible+span{outline:3px solid var(--ink)}
-.seg.three{grid-template-columns:repeat(3,1fr)}
-.file{display:block;text-align:center;padding:14px;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;margin-bottom:6px}
-.file input{display:none}
-#rs{margin:2px 0 10px;min-height:1.4em}
-.owe{background:var(--ink);color:#fff;border-radius:14px;padding:14px 16px;margin:6px 0 10px;font-size:1.2rem;font-weight:600}
-.owe small{display:block;font-weight:400;opacity:.8;font-size:.85rem;margin-top:2px}
-.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.f label{display:block;font-size:.85rem;color:var(--mute)}
-.f input,.field{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);margin-top:2px}
-.go{width:100%;margin-top:12px;padding:14px;border-radius:12px;background:var(--ink);color:#fff;font-weight:600}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0 6px}
-.stat{background:var(--c);color:#fff;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column}
-.stat b{font-size:1.05rem}
-#scrim{position:fixed;inset:0;background:#0007;opacity:0;pointer-events:none;transition:opacity .2s}
-#sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px calc(20px + var(--bot));transform:translateY(105%);transition:transform .22s ease;max-height:85%;overflow-y:auto}
-body.open #scrim{opacity:1;pointer-events:auto}
-body.open #sheet{transform:none}
-#sheet h2{font-size:1.2rem;margin-bottom:10px;text-transform:capitalize}
-.warn{background:#fff3e0;border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:.9rem}
-#toast{position:fixed;left:16px;right:16px;bottom:calc(80px + var(--bot));background:var(--ink);color:#fff;padding:12px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s}
-#toast.on{opacity:1}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+:root{--blue:#2757E6;--or:#FF8A2B;--lime:#C8F24D;--ink:#17142B;--mute:#5A5675;--bg:#F5F2FF;--lt:#EFEBFF;--bot:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font:500 16px/1.35 'Bricolage Grotesque',system-ui,sans-serif;padding-top:env(safe-area-inset-top,0px)}
+button,input{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none}
+#app{padding:16px 20px calc(130px + var(--bot));min-height:100vh}
+.h{font-size:28px;font-weight:800;letter-spacing:-.5px;flex:1}
+.top{display:flex;align-items:center;gap:12px;min-height:48px}
+.ib{width:44px;height:44px;border-radius:16px;background:#fff;display:grid;place-items:center}
+.lab{font-size:13px;font-weight:700;color:var(--mute)}
+.card{background:#fff;border-radius:24px;padding:16px;margin-top:12px}
+.row{display:flex;align-items:center;gap:12px}.sp{justify-content:space-between}
+.av{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-weight:800;flex:none}
+.pill{border-radius:99px;padding:4px 12px;font-size:13px;font-weight:800}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.big{font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1.1}
+.x{font-size:24px;width:36px;height:36px;color:var(--mute)}
+.btn{height:56px;border-radius:20px;background:var(--blue);color:#fff;font-weight:800;font-size:17px;width:100%;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:after{content:'';position:absolute;top:0;bottom:0;width:40px;background:rgba(255,255,255,.35);transform:skewX(-20deg);animation:shine 2.8s ease-in-out infinite}
+.cta{position:fixed;left:20px;right:20px;bottom:calc(24px + var(--bot));width:auto;z-index:4}.cta.n{bottom:calc(92px + var(--bot))}
+.fab{position:fixed;right:20px;bottom:calc(92px + var(--bot));z-index:5;height:56px;border-radius:20px;background:var(--lime);display:flex;align-items:center;gap:8px;padding:0 20px 0 16px;font-weight:800;font-size:16px;animation:fab 2.4s ease-in-out infinite;box-shadow:0 8px 20px rgba(23,20,43,.25)}
+nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:28px 28px 0 0;display:flex;justify-content:space-around;padding:10px 12px calc(10px + var(--bot));z-index:6}
+nav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:700;min-width:70px;height:56px;justify-content:center;border-radius:20px;color:var(--mute)}
+nav .on{background:#E3EAFF;color:#1B3FB8}
+.seg{display:flex;background:#fff;border-radius:20px;padding:4px;margin:14px 0}.seg button{flex:1;height:44px;border-radius:16px;font-weight:800;font-size:15px}
+.hero{background:var(--blue);color:#fff;border-radius:28px;padding:18px 18px 0;height:150px;position:relative;overflow:hidden}.hero.busy{background:var(--ink)}
+.hero h2{font-size:24px;font-weight:800;margin-top:10px;letter-spacing:-.4px;width:190px;line-height:1.15}.hero p{font-size:14px;margin-top:4px;width:190px}
+.road{position:absolute;left:0;right:0;bottom:0;height:26px;background:var(--ink)}.hero.busy .road{background:#000}
+.road i{position:absolute;left:0;right:0;top:11px;height:4px;background:repeating-linear-gradient(90deg,#F5F2FF 0 24px,transparent 24px 48px);animation:road .8s linear infinite}
+.car{position:absolute;right:10px;bottom:10px;animation:bob 1.6s ease-in-out infinite}
+.live{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.18);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:700}.live b{width:10px;height:10px;border-radius:50%;background:var(--lime);animation:pulse 1.4s infinite}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-top:18px}.mh h2{font-size:20px;font-weight:800;text-transform:capitalize}
+.mh button{font-size:26px;width:36px;height:36px;border-radius:12px;background:#fff}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}.cal .w{font-size:12px;font-weight:700;color:var(--mute);text-align:center}
+.c{height:44px;border-radius:14px;background:#fff;font-weight:700;font-size:15px}.cal .c.t,.wk .c.t{outline:3px solid var(--ink);outline-offset:1px}
+.in{width:100%;height:52px;border-radius:16px;border:2px solid #E3DEFA;background:#fff;padding:0 14px;margin-top:6px;font-weight:700}
+.in.b{font-size:20px;font-weight:800}
+.two{display:flex;gap:12px;margin-top:16px}.two>div{flex:1}
+.sw{width:56px;height:32px;border-radius:99px;background:var(--blue);padding:4px;display:flex;justify-content:flex-end;flex:none}.sw i{width:24px;height:24px;border-radius:50%;background:#fff;display:block}.sw.off{background:#C9C3E8;justify-content:flex-start}
+.dt{flex:1;background:var(--bg);border-radius:18px;padding:12px 14px;position:relative;display:block}.dt b{display:block;font-size:26px;font-weight:800;letter-spacing:-.5px}
+.dt input,.dw input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0}
+.dw{position:relative}
+.cam{position:relative;height:170px;border-radius:24px;background:var(--ink);display:flex;gap:6px;justify-content:center;align-items:center;overflow:hidden}
+.cam u{position:absolute;left:12%;right:12%;height:3px;background:var(--lime);border-radius:3px;box-shadow:0 0 14px var(--lime);animation:scan 2.4s ease-in-out infinite}
+.cam em{font-style:normal;width:34px;height:48px;border-radius:10px;background:#2C2750;color:var(--lime);display:grid;place-items:center;font-size:28px;font-weight:700}
+.cam s{position:absolute;width:22px;height:22px;border:3px solid var(--lime)}
+.rc{position:relative;height:150px;border-radius:24px;border:3px dashed #B9AEF0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;overflow:hidden;text-align:center;padding:0 24px;margin-top:12px}
+.rc u{position:absolute;left:10%;right:10%;height:3px;border-radius:3px;background:var(--blue);box-shadow:0 0 12px var(--blue);animation:scan 2.6s ease-in-out infinite}
+.chip{display:inline-flex;align-items:center;gap:8px;background:var(--lime);border-radius:99px;padding:8px 14px;font-weight:800;color:var(--ink)}
+.ghost{height:44px;border-radius:16px;background:#fff;padding:0 14px;display:flex;align-items:center;gap:8px;font-weight:700}
+.who{display:flex;gap:8px;margin-top:8px}.who button{flex:1;height:48px;border-radius:16px;background:#fff;font-weight:800;font-size:15px}
+.track{background:var(--lt);border-radius:99px;margin:6px 0 12px}.bar{height:14px;border-radius:99px;transform-origin:left}
+.tl{position:relative;margin-top:16px}.tl .rd{position:absolute;left:0;top:0;bottom:0;width:56px;border-radius:28px;background:var(--ink)}
+.tl .rd i{position:absolute;left:26px;width:4px;top:0;bottom:0;background:repeating-linear-gradient(180deg,#F5F2FF 0 24px,transparent 24px 48px);animation:lane .8s linear infinite}
+.rt{position:relative;margin:0 0 14px 70px}.mk{position:absolute;left:-54px;top:18px;width:32px;height:32px;border-radius:50%;border:4px solid var(--bg);box-shadow:0 0 0 3px var(--ink)}
+.pay{background:var(--ink);color:#fff;border-radius:28px;padding:16px 18px;margin-top:10px}
+#scrim{position:fixed;inset:0;background:#0007;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+#sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:20px 20px calc(20px + var(--bot));transform:translateY(105%);transition:transform .22s ease;max-height:85%;overflow-y:auto;z-index:10}
+body.open #scrim{opacity:1;pointer-events:auto}body.open #sheet{transform:none}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(150px + var(--bot));background:var(--ink);color:#fff;padding:12px 14px;border-radius:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}#toast.on{opacity:1}
+.anim .up{animation:up .6s cubic-bezier(.2,.9,.3,1.2) both;animation-delay:calc(var(--i,0)*70ms)}
+.anim .pop{animation:pop .5s cubic-bezier(.2,.9,.3,1.4) both;animation-delay:calc(var(--i,0)*25ms + .2s)}
+.anim .gr{animation:grow .9s .3s cubic-bezier(.2,.9,.3,1) both}.anim .gy{animation:growy .8s .3s cubic-bezier(.2,.9,.3,1.2) both;transform-origin:bottom}
+.bob{display:inline-block;animation:bob 2s ease-in-out infinite}
+@keyframes up{from{opacity:0;transform:translateY(18px)}}@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.12)}}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-5px) rotate(1deg)}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(200,242,77,.7)}100%{box-shadow:0 0 0 12px rgba(200,242,77,0)}}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes road{to{background-position:-48px 0}}@keyframes lane{to{background-position:0 48px}}
+@keyframes shine{0%{left:-60px}60%,100%{left:110%}}@keyframes scan{0%,100%{top:10%}50%{top:84%}}
+@keyframes fab{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}@keyframes grow{from{transform:scaleX(0)}}@keyframes growy{from{transform:scaleY(0)}}
+@keyframes fillg{from{stroke-dashoffset:220}}@keyframes coin{0%{left:0;opacity:0}15%,85%{opacity:1}100%{left:calc(100% - 30px);opacity:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<header><h1>Autoplanner</h1><div id="me"></div></header>
-<main>
-  <section id="agenda"></section>
-  <section id="ritten" hidden>
-    <div id="rsum"></div>
-    <form id="rf2">
-      <label class="file">Foto van de kilometerteller<input type="file" id="rf" accept="image/*" capture="environment"></label>
-      <p id="rs" class="mute"></p>
-      <label class="chk"><input type="checkbox" id="rb"> Wij reden allebei sinds de vorige foto</label>
-      <div class="f" style="grid-template-columns:1fr"><label>Kilometerstand<input type="number" id="rk" min="0" inputmode="numeric" required></label></div>
-      <button class="go">Rit opslaan</button>
-    </form>
-    <div id="rlist"></div>
-  </section>
-  <section id="tanken" hidden>
-    <form id="tf">
-      <div class="f">
-        <label>Datum<input type="date" id="td" required></label>
-        <label>Liters<input type="number" id="tl" step="0.01" min="0" inputmode="decimal" required></label>
-        <label>Bedrag (€)<input type="number" id="tb" step="0.01" min="0" inputmode="decimal" required></label>
-        <label>Kilometerstand<input type="number" id="tk" min="0" inputmode="numeric"></label>
-      </div>
-      <button class="go">Tankbeurt opslaan</button>
-    </form>
-    <div id="tlist"></div>
-  </section>
-</main>
-<nav><button data-v="agenda" class="on">Agenda</button><button data-v="ritten">Ritten</button><button data-v="tanken">Tanken</button></nav>
-<div id="scrim" data-act="close"></div><div id="sheet"></div><div id="toast"></div>
+<div id="app" class="anim"></div><div id="scrim" data-act="close"></div><div id="sheet"></div><div id="toast"></div>
 <script>
 const API='https://script.google.com/macros/s/AKfycbwXCURVE-CWmnbBivbrDVDPMOGWioOzEtv3KyPxfIwicBauJTVISnl2UIKHdV10Bjca/exec';
-const $=s=>document.querySelector(s), LS=localStorage;
-const NAMES=['Joppe','Iebe'], COL={Joppe:'#2457c5',Iebe:'#f08a1c',Beide:'#16202e'};
+const $=s=>document.querySelector(s),LS=localStorage;
+const NAMES=['Joppe','Iebe'],P={Joppe:{bg:'#2757E6',fg:'#fff'},Iebe:{bg:'#FF8A2B',fg:'#17142B'},Beide:{bg:'#17142B',fg:'#fff'}};
+const other=n=>n==='Joppe'?'Iebe':'Joppe';
 const cfg={key:LS.getItem('ap_key')||'',me:LS.getItem('ap_me')||''};
-let data={ritten:[],...JSON.parse(LS.getItem('ap_data')||'{"reserveringen":[],"tankbeurten":[]}')};
-let pending=0,view='agenda', cur=new Date(); cur.setDate(1);
+let data={ritten:[],afrekeningen:[],...JSON.parse(LS.getItem('ap_data')||'{"reserveringen":[],"tankbeurten":[]}')};
+let pending=0,view='home',D={},cur=new Date();cur.setDate(1);
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const today=iso(new Date());
-const fd=k=>new Date(k+'T00:00').toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
-const multi=r=>r.eind&&r.eind!==r.datum;
-const cov=(r,k)=>r.datum<=k&&(r.eind||r.datum)>=k;
-const tspan=r=>multi(r)?(fd(r.datum)+' '+(r.van||'')+' tot '+fd(r.eind)+' '+(r.tot||'')).replace(/ +/g,' ').trim():(r.van&&r.tot?r.van+' tot '+r.tot:'hele dag');
+const T=()=>iso(new Date()),dd=k=>new Date(k+'T00:00');
+const fd=k=>dd(k).toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?0:n};
+const nl=n=>n.toLocaleString('nl-BE',{minimumFractionDigits:2,maximumFractionDigits:2}),eur=n=>'€ '+nl(n);
+const fk=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 const mins=t=>t?(+t.slice(0,2))*60+(+t.slice(3,5)):0;
 const dn=k=>Math.floor(new Date(k+'T00:00:00Z')/864e5);
 const rng=r=>[dn(r.datum)*1440+(r.van?mins(r.van):0),dn(r.eind||r.datum)*1440+(r.tot?mins(r.tot):1440)];
-const eur=n=>n.toLocaleString('nl-BE',{style:'currency',currency:'EUR'});
-const who=(name,sel,list=NAMES)=>`<div class="seg${list.length>2?' three':''}">${list.map(n=>`<label style="--c:${COL[n]}"><input type="radio" name="${name}" value="${n}" ${n===sel?'checked':''}><span>${n}</span></label>`).join('')}</div>`;
-const pick=name=>(document.querySelector(`input[name=${name}]:checked`)||{}).value;
-const needMe=()=>{if(!cfg.me){toast('Kies bovenaan eerst Joppe of Iebe.');return true}};
+const multi=r=>r.eind&&r.eind!==r.datum,cov=(r,k)=>r.datum<=k&&(r.eind||r.datum)>=k;
+const tspan=r=>multi(r)?(fd(r.datum)+' '+(r.van||'')+' tot '+fd(r.eind)+' '+(r.tot||'')).replace(/ +/g,' ').trim():(r.van&&r.tot?r.van+' tot '+r.tot:'hele dag');
+const svg=(p,s=24)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const IC={cal:'<rect x="3" y="5" width="18" height="16" rx="4"/><path d="M8 3v4M16 3v4M3 11h18"/>',pump:'<path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h14M15 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/><path d="M8 8h4"/>',route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/>',bill:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',back:'<path d="M15 6l-6 6 6 6"/>',plus:'<path d="M12 5v14M5 12h14"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',cam:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',ok:'<path d="M5 12l5 5 9-10"/>',arr:'<path d="M5 12h14M13 6l6 6-6 6"/>',re:'<path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 10A8 8 0 0 0 6 6L4 10M4 14a8 8 0 0 0 14 4l2-4"/>'};
+const ic=(n,s)=>svg(IC[n],s);
+const CAR='<svg width="150" height="76" viewBox="0 0 150 76" aria-hidden="true"><rect x="6" y="32" width="138" height="26" rx="12" fill="#C8F24D"/><path d="M36 32L50 11Q53 7 58 7H92Q97 7 101 11L116 32Z" fill="#C8F24D"/><path d="M46 30L56 14H70V30ZM76 30V14H92L103 30Z" fill="#17142B"/><g style="transform-box:fill-box;transform-origin:center;animation:spin 1.2s linear infinite"><circle cx="38" cy="60" r="12" fill="#17142B"/><path d="M38 51V69M29 60H47" stroke="#F5F2FF" stroke-width="3"/></g><g style="transform-box:fill-box;transform-origin:center;animation:spin 1.2s linear infinite"><circle cx="112" cy="60" r="12" fill="#17142B"/><path d="M112 51V69M103 60H121" stroke="#F5F2FF" stroke-width="3"/></g></svg>';
+const pill=n=>`<span class="pill" style="background:${P[n].bg};color:${P[n].fg}">${n}</span>`;
+const av=n=>`<span class="av" style="background:${P[n].bg};color:${P[n].fg}">${n[0]}</span>`;
+const dot=n=>`<span class="dot" style="background:${P[n].bg}"></span>`;
+const own=n=>n===cfg.me||n==='Beide';
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),3200)}
+const needMe=()=>{if(!cfg.me){toast('Kies eerst of je Joppe of Iebe bent.');return true}};
 const save=()=>LS.setItem('ap_data',JSON.stringify(data));
 
 async function sync(){
@@ -131,155 +120,225 @@ async function sync(){
   try{
     const j=await (await fetch(API+'?key='+encodeURIComponent(cfg.key))).json();
     if(pending)return;
-    if(j.error){toast(j.error==='Geen toegang'?'Sleutel klopt niet. Pas hem aan via het tandwiel rechtsboven.':j.error);return}
-    data={ritten:[],...j};save();render();
+    if(j.error){toast(j.error==='Geen toegang'?'Sleutel klopt niet. Pas hem aan via het tandwiel.':j.error);return}
+    data={ritten:[],afrekeningen:[],...j};save();render(true);
   }catch(e){toast('Geen verbinding. Je ziet de laatst bewaarde gegevens.')}
 }
 async function call(body){
   const j=await (await fetch(API,{method:'POST',body:JSON.stringify({key:cfg.key,...body})})).json();
   if(j.error)throw new Error(j.error);return j;
 }
-const listOf=t=>({reservering:'reserveringen',tankbeurt:'tankbeurten',rit:'ritten'})[t];
+const listOf=t=>({reservering:'reserveringen',tankbeurt:'tankbeurten',rit:'ritten',afrekening:'afrekeningen'})[t];
 async function add(type,item){
-  const k=listOf(type), tmp={...item,id:'tmp'+Date.now()};
-  data[k].push(tmp);render();pending++;
+  const k=listOf(type),tmp={...item,id:'tmp'+Date.now()};
+  data[k].push(tmp);render(true);pending++;
   try{const j=await call({action:'add',type,data:item});tmp.id=j.id;save()}
-  catch(e){data[k]=data[k].filter(x=>x!==tmp);render();toast('Opslaan mislukt: '+e.message)}finally{pending--}
+  catch(e){data[k]=data[k].filter(x=>x!==tmp);render(true);toast('Opslaan mislukt: '+e.message)}finally{pending--}
 }
 async function del(type,id){
-  const k=listOf(type), old=data[k];
-  data[k]=old.filter(x=>x.id!==id);render();pending++;
+  const k=listOf(type),old=data[k];
+  data[k]=old.filter(x=>x.id!==id);render(true);pending++;
   try{await call({action:'delete',type,id});save()}
-  catch(e){data[k]=old;render();toast('Verwijderen mislukt')}finally{pending--}
+  catch(e){data[k]=old;render(true);toast('Verwijderen mislukt')}finally{pending--}
 }
 
-function renderAgenda(){
-  const y=cur.getFullYear(),m=cur.getMonth(),off=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();
-  let h=`<div class="mnav"><button data-act="prev" aria-label="Vorige maand">‹</button><h2>${cur.toLocaleDateString('nl-BE',{month:'long',year:'numeric'})}</h2><button data-act="next" aria-label="Volgende maand">›</button></div><div class="grid">`;
-  ['ma','di','wo','do','vr','za','zo'].forEach(d=>h+=`<b>${d}</b>`);
-  h+='<i></i>'.repeat(off);
-  for(let d=1;d<=n;d++){
-    const k=iso(new Date(y,m,d)), c=[...new Set(data.reserveringen.filter(r=>cov(r,k)).map(r=>COL[r.persoon]))];
-    const bg=c.length>1?`linear-gradient(135deg,${c[0]} 50%,${c[1]} 50%)`:c[0]||'';
-    h+=`<button class="day${c.length?' res':''}${k===today?' today':''}" data-act="day" data-d="${k}"${bg?` style="background:${bg}"`:''}>${d}</button>`;
-  }
-  h+='</div><h3>Komende reserveringen</h3>';
-  const up=data.reserveringen.filter(r=>(r.eind||r.datum)>=today).sort((a,b)=>a.datum.localeCompare(b.datum)).slice(0,6);
-  h+=up.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${multi(r)?tspan(r):fd(r.datum)+', '+tspan(r)}</b>, ${r.persoon}${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div></div>`).join('')||'<p class="mute">Nog niets gereserveerd. Tik op een dag om te reserveren.</p>';
-  $('#agenda').innerHTML=h;
-}
-function stats(){
-  const per={Joppe:{l:0,e:0},Iebe:{l:0,e:0}};
-  data.tankbeurten.forEach(x=>{const p=per[x.persoon];if(p){p.l+=+x.liters||0;p.e+=+x.bedrag||0}});
-  const km=data.tankbeurten.filter(x=>+x.kilometerstand).sort((a,b)=>a.kilometerstand-b.kilometerstand);
-  let avg=null;
-  if(km.length>1){const dist=km[km.length-1].kilometerstand-km[0].kilometerstand,l=km.slice(1).reduce((s,x)=>s+(+x.liters||0),0);if(dist>0)avg=l/dist*100}
-  return{per,avg};
-}
-function renderTanken(){
-  const{per,avg}=stats();
-  let h=`<div class="stats">${NAMES.map(n=>`<div class="stat" style="--c:${COL[n]}"><b>${n}</b><span>${per[n].l.toFixed(1)} L getankt</span><span>${eur(per[n].e)}</span></div>`).join('')}</div>`;
-  if(avg)h+=`<p class="mute">Gemiddeld verbruik: ${avg.toFixed(1)} L/100 km (schatting)</p>`;
-  h+='<h3>Tankbeurten</h3>'+(data.tankbeurten.slice().sort((a,b)=>(b.datum||'').localeCompare(a.datum||'')).map(x=>`<div class="row"><i style="background:${COL[x.persoon]}"></i><div><b>${fd(x.datum)}</b>, ${x.persoon}<br><small>${x.liters} L, ${eur(+x.bedrag||0)}${+x.kilometerstand?`, ${x.kilometerstand} km`:''}</small></div><button data-act="delt" data-id="${x.id}" aria-label="Verwijderen">×</button></div>`).join('')||'<p class="mute">Nog geen tankbeurten.</p>');
-  $('#tlist').innerHTML=h;
-}
-function ritStats(){
-  const r=data.ritten.filter(x=>+x.kmstand).sort((a,b)=>a.kmstand-b.kmstand),km={Joppe:0,Iebe:0},paid={Joppe:0,Iebe:0};
-  for(let i=1;i<r.length;i++){const d=r[i].kmstand-r[i-1].kmstand;
+function stats(extra){
+  const r=data.ritten.concat(extra||[]).filter(x=>+x.kmstand).sort((a,b)=>a.kmstand-b.kmstand),km={Joppe:0,Iebe:0},paid={Joppe:0,Iebe:0},legs=[];
+  for(let i=1;i<r.length;i++){const d=r[i].kmstand-r[i-1].kmstand;legs.push({...r[i],from:r[i-1].kmstand,dist:d});
     if(r[i].persoon==='Beide'){km.Joppe+=d/2;km.Iebe+=d/2}else if(km[r[i].persoon]!==undefined)km[r[i].persoon]+=d}
-  data.tankbeurten.forEach(x=>{if(paid[x.persoon]!==undefined)paid[x.persoon]+=+x.bedrag||0});
+  data.tankbeurten.forEach(x=>{if(paid[x.persoon]!==undefined)paid[x.persoon]+=num(x.bedrag)});
   const total=km.Joppe+km.Iebe,cost=paid.Joppe+paid.Iebe,rate=total>0?cost/total:0;
-  return{km,paid,total,cost,rate,bal:paid.Joppe-km.Joppe*rate};
+  let bal=paid.Joppe-km.Joppe*rate;
+  data.afrekeningen.forEach(a=>{const b=num(a.bedrag);if(a.betaler==='Iebe')bal-=b;else if(a.betaler==='Joppe')bal+=b});
+  return{r,legs,km,paid,total,cost,rate,bal};
 }
-function renderRitten(){
-  const s=ritStats(),n=data.ritten.length;let h='';
-  if(n<2)h+=`<p class="mute" style="margin:6px 0 10px">${n?'Startstand genoteerd. Vanaf de volgende foto tellen de kilometers.':'Maak een eerste foto als startstand. Daarna telt elke foto de kilometers sinds de vorige.'}</p>`;
-  else{
-    const ab=Math.abs(s.bal);
-    h+=`<div class="owe">${ab<.005?'Alles is in evenwicht':(s.bal>0?'Iebe betaalt Joppe ':'Joppe betaalt Iebe ')+eur(ab)}<small>${Math.round(s.total)} km gereden, brandstof ${eur(s.cost)}, ${(s.rate*100).toFixed(1)} cent per km</small></div>`;
-    h+=`<div class="stats">${NAMES.map(x=>`<div class="stat" style="--c:${COL[x]}"><b>${x}</b><span>${Math.round(s.km[x])} km gereden</span><span>${eur(s.paid[x])} getankt</span></div>`).join('')}</div>`;
-  }
-  h+='<h3>Kilometerstanden</h3>'+(data.ritten.slice().sort((a,b)=>b.kmstand-a.kmstand).map(x=>`<div class="row"><i style="background:${COL[x.persoon]}"></i><div><b>${x.kmstand} km</b>, ${x.persoon}<br><small>${fd(x.datum)}</small></div><button data-act="delrit" data-id="${x.id}" aria-label="Verwijderen">×</button></div>`).join('')||'<p class="mute">Nog geen ritten.</p>');
-  $('#rlist').innerHTML=h;
+const owe=b=>Math.abs(b)<.005?null:(b>0?['Iebe','Joppe']:['Joppe','Iebe']);
+function gauge(){
+  const f=data.tankbeurten.filter(x=>x.datum).sort((a,b)=>a.datum.localeCompare(b.datum));
+  if(!f.length)return null;
+  const last=f[f.length-1];if(last.vol==='nee')return{last,unk:1};
+  const s=stats(),cap=Math.max(...f.map(x=>num(x.liters)))||50,cons=s.total>100?s.cost>0?data.tankbeurten.reduce((a,x)=>a+num(x.liters),0)/s.total*100:7:7;
+  let since=0;if(s.r.length){const base=s.r.filter(x=>x.datum<=last.datum).pop()||s.r[0];since=s.r[s.r.length-1].kmstand-base.kmstand}
+  return{last,lv:Math.max(0,Math.min(1,1-since*cons/100/cap))};
+}
+function carState(){
+  const n=new Date(),nm=dn(T())*1440+n.getHours()*60+n.getMinutes(),rs=data.reserveringen.filter(r=>r.datum).map(r=>({r,a:rng(r)[0],b:rng(r)[1]}));
+  const c=rs.find(x=>x.a<=nm&&nm<x.b),nx=rs.filter(x=>x.a>nm).sort((x,y)=>x.a-y.a)[0];
+  return{c:c&&c.r,nx:nx&&nx.r};
+}
+function dayStyle(k,extra){
+  const c=[...new Set(data.reserveringen.filter(r=>cov(r,k)).map(r=>r.persoon).concat(extra?[extra]:[]))];
+  if(!c.length)return'';
+  return c.length>1?`;background:linear-gradient(135deg,${P[c[0]].bg} 50%,${P[c[1]].bg} 50%);color:#fff`:`;background:${P[c[0]].bg};color:${P[c[0]].fg}`;
+}
+const hd=(t,back)=>`<div class="top up"><button class="ib" data-act="go" data-v="${back}" aria-label="Terug">${ic('back')}</button><h1 class="h">${t}</h1></div>`;
+const as=()=>cfg.me?`${dot(cfg.me)} `:'';
+
+function vHome(){
+  const s=carState(),y=cur.getFullYear(),m=cur.getMonth(),off=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate(),t=T();
+  let c=['ma','di','wo','do','vr','za','zo'].map(d=>`<span class="w">${d}</span>`).join('')+'<span></span>'.repeat(off);
+  for(let d=1;d<=n;d++){const k=iso(new Date(y,m,d));c+=`<button class="c pop${k===t?' t':''}" style="--i:${d}${dayStyle(k)}" data-act="dayp" data-d="${k}" aria-label="${d}">${d}</button>`}
+  const up=data.reserveringen.filter(r=>(r.eind||r.datum)>=t).sort((a,b)=>a.datum.localeCompare(b.datum)).slice(0,6);
+  const endTxt=r=>fd(r.eind||r.datum)+(r.tot?' '+r.tot:'');
+  return `<div class="top up"><h1 class="h">Hoi ${cfg.me||'daar'}</h1><button class="ib" data-act="setup" aria-label="Instellingen">${ic('gear')}</button></div>
+<div class="seg up" style="--i:1" role="group" aria-label="Wie ben jij">${NAMES.map(n=>`<button data-act="who" data-n="${n}"${n===cfg.me?` style="background:${P[n].bg};color:${P[n].fg}"`:''}>Ik ben ${n}</button>`).join('')}</div>
+<div class="hero${s.c?' busy':''} up" style="--i:2"><span class="live"><b></b>${s.c?'Bezet':'Nu vrij'}</span><h2>${s.c?s.c.persoon+' heeft de auto':'Auto staat klaar'}</h2><p>${s.c?'Tot '+endTxt(s.c):s.nx?'Volgende: '+s.nx.persoon+', '+fd(s.nx.datum):'Niets gepland'}</p><div class="road"><i></i></div><div class="car">${CAR}</div></div>
+<div class="mh up" style="--i:3"><div class="row" style="gap:4px"><button data-act="prev" aria-label="Vorige maand">‹</button><h2>${cur.toLocaleDateString('nl-BE',{month:'long',year:y===new Date().getFullYear()?undefined:'numeric'})}</h2><button data-act="next" aria-label="Volgende maand">›</button></div><span class="lab">${dot('Joppe')} Joppe &nbsp;${dot('Iebe')} Iebe</span></div>
+<div class="cal">${c}</div>
+<h2 class="up" style="--i:4;font-size:20px;font-weight:800;margin-top:18px">Komende reserveringen</h2>
+${up.map(r=>`<div class="card row" style="padding:12px 16px;margin-top:8px">${av(r.persoon)}<div style="flex:1"><b>${multi(r)?tspan(r):fd(r.datum)+', '+tspan(r)}</b>${r.opmerking?`<p class="lab">${r.opmerking}</p>`:''}</div>${r.persoon===cfg.me?`<button class="x" data-act="delr" data-id="${r.id}" aria-label="Annuleren">×</button>`:''}</div>`).join('')||'<p class="lab" style="margin-top:8px">Nog niets gepland. Tik op een dag om te reserveren.</p>'}
+<button class="fab" data-act="go" data-v="res">${ic('plus',22)}<span>Shotgun Benny</span></button>`;
+}
+function vRes(){
+  const {ad,ds,de,ts,te,note}=D,mon=dd(ds);mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
+  const tile=(l,k,key)=>`<label class="dt"><span class="lab">${l}</span><b>${dd(k).toLocaleDateString('nl-BE',{weekday:'short',day:'numeric'})}</b><span class="lab">${dd(k).toLocaleDateString('nl-BE',{month:'long'})}</span><input type="date" value="${k}" data-k="${key}"${key==='de'?` min="${ds}"`:''}></label>`;
+  let wk='';for(let i=0;i<7;i++){const x=new Date(mon);x.setDate(mon.getDate()+i);const k=iso(x);
+    wk+=`<div style="text-align:center"><div class="lab">${['ma','di','wo','do','vr','za','zo'][i]}</div><button class="c" style="width:100%;margin-top:4px${dayStyle(k,k>=ds&&k<=de?cfg.me:'')}">${x.getDate()}</button></div>`}
+  return `${hd('Reserveren','home')}<p class="lab up" style="--i:1;margin:14px 0 0">${as()}Je reserveert als ${cfg.me||'…'}</p>
+<div class="card up" style="--i:2"><label class="lab" for="w" style="font-size:18px;color:var(--ink)">Waarvoor?</label><input class="in" id="w" data-k="note" value="${note||''}" placeholder="Bv. dikke fjeeste in Gent"></div>
+<div class="card up" style="--i:3"><div class="row sp"><h2 style="font-size:18px;font-weight:800">Hele dag</h2><button class="sw${ad?'':' off'}" data-act="tgl" data-k="ad" aria-pressed="${ad}" aria-label="Hele dag"><i></i></button></div>
+<div class="row" style="margin-top:16px">${tile('Van',ds,'ds')}<span style="color:var(--mute)">${ic('arr')}</span>${tile('Tot',de,'de')}</div>
+${ad?'':`<div class="two"><div><label class="lab">Van (uur)</label><input class="in b" type="time" data-k="ts" value="${ts}"></div><div><label class="lab">Tot (uur)</label><input class="in b" type="time" data-k="te" value="${te}"></div></div>`}</div>
+<div class="card up wk" style="--i:4"><h2 style="font-size:16px;font-weight:800;margin-bottom:10px">Planning van de week</h2><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${wk}</div></div>
+<button class="btn cta up" style="--i:5" data-act="resv">Zet mo vaste!</button>`;
+}
+function vTanken(){
+  const s=stats(),g=gauge(),mx=Math.max(s.paid.Joppe,s.paid.Iebe,1),f=data.tankbeurten.slice().sort((a,b)=>(b.datum||'').localeCompare(a.datum||'')).slice(0,8);
+  const lb=l=>l>.9?'vol':l>=.625?'¾ vol':l>=.375?'½ vol':l>=.125?'¼ vol':'bijna leeg';
+  return `<div class="top up"><h1 class="h">Tanken</h1></div>
+<div class="card up row" style="--i:1;gap:16px;height:118px"><svg width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="#EFEBFF" stroke-width="10"/><circle cx="42" cy="42" r="35" fill="none" stroke="#2757E6" stroke-width="10" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="${g&&g.lv!==undefined?220*(1-g.lv):220}" transform="rotate(-90 42 42)" style="animation:fillg 1s .3s ease-out both"/></svg>
+<div><p class="lab">Tankinhoud (schatting)</p><h2 style="font-size:30px;font-weight:800;letter-spacing:-1px">${!g?'Onbekend':g.unk?'Onbekend':lb(g.lv)}</h2><p class="lab">${g?'Laatst getankt: '+fd(g.last.datum):'Nog niet getankt'}</p></div></div>
+<div class="card up" style="--i:2"><h2 style="font-size:16px;font-weight:800">Wie betaalde er al?</h2>${NAMES.map((n,i)=>`<div class="row sp" style="margin-top:10px;font-weight:700;font-size:14px"><span>${n}</span><span>${eur(s.paid[n])}</span></div><div class="track" style="${i?'margin-bottom:0':''}"><div class="bar gr" style="width:${s.paid[n]/mx*100}%;background:${P[n].bg}"></div></div>`).join('')}</div>
+<h2 class="up" style="--i:3;font-size:20px;font-weight:800;margin:16px 0 0">Laatste tankbeurten</h2>
+${f.map(x=>`<div class="card row" style="padding:12px 16px;margin-top:8px">${av(x.persoon)}<div style="flex:1"><b style="font-size:16px">${x.persoon}</b><p class="lab">${fd(x.datum)}</p></div><div style="text-align:right"><b style="font-size:18px">${eur(num(x.bedrag))}</b><p class="lab">${nl(num(x.liters)).replace(/,00$/,'')} L</p></div>${x.persoon===cfg.me?`<button class="x" data-act="delt" data-id="${x.id}" aria-label="Verwijderen">×</button>`:''}</div>`).join('')||'<p class="lab" style="margin-top:8px">Nog geen tankbeurten.</p>'}
+<button class="btn cta n" data-act="go" data-v="tb">${ic('plus',22)}Tankbeurt toevoegen</button>`;
+}
+function vTb(){
+  return `${hd('Tankbeurt','tanken')}<p class="lab up" style="--i:1;margin:14px 0 0">${as()}Je tankt als ${cfg.me||'…'}</p>
+<label class="rc up" style="--i:2" for="bonf"><u></u><span class="bob">${ic('cam',34)}</span><b style="font-size:17px;font-weight:800">Foto van de bon</b><span class="lab" id="st">${D.st||'Bedrag en liters vul je dan niet zelf in'}</span></label><input type="file" id="bonf" accept="image/*" capture="environment" hidden>
+<div class="two up" style="--i:3"><div><label class="lab">Bedrag (€)</label><input class="in b" inputmode="decimal" data-k="bedrag" data-u="tb" value="${D.bedrag||''}"></div><div><label class="lab">Liters</label><input class="in b" inputmode="decimal" data-k="liters" data-u="tb" value="${D.liters||''}"></div></div>
+<div id="ppl" style="margin-top:12px;min-height:38px"></div>
+<div class="card up dw" style="--i:5"><div class="row sp"><div><p class="lab">Wanneer</p><h2 style="font-size:20px;font-weight:800">${D.datum===T()?'Vandaag, ':''}${fd(D.datum)}</h2></div>${ic('cal')}</div><input type="date" data-k="datum" value="${D.datum}" max="${T()}"></div>
+<div class="card up row sp" style="--i:6"><div><h2 style="font-size:18px;font-weight:800">Tank is nu vol</h2><p class="lab">Dan klopt de meter weer</p></div><button class="sw${D.vol?'':' off'}" data-act="tgl" data-k="vol" aria-pressed="${!!D.vol}" aria-label="Tank is nu vol"><i></i></button></div>
+<button class="btn cta up" style="--i:7" data-act="tbsave">Tankbeurt opslaan</button>`;
+}
+function vRitten(){
+  const s=stats(),legs=s.legs.slice().sort((a,b)=>b.kmstand-a.kmstand);
+  return `<div class="top up"><h1 class="h">Ritten</h1></div>
+${s.r.length>1?`<div class="row up" style="--i:1;margin:12px 0 0;flex-wrap:wrap;gap:8px"><span class="lab">Sinds ${fd(s.r[0].datum)}</span>${NAMES.map(n=>`<span class="pill" style="background:${P[n].bg};color:${P[n].fg};padding:8px 14px;font-size:14px">${n} ${fk(s.km[n])} km</span>`).join('')}</div>`:'<p class="lab up" style="--i:1;margin-top:12px">Maak een eerste foto als startstand. Daarna telt elke foto de kilometers sinds de vorige.</p>'}
+<div class="tl"><div class="rd"><i></i></div>${legs.map((x,i)=>`<div class="rt up" style="--i:${i+2}"><b class="mk" style="background:${x.persoon==='Beide'?'linear-gradient(90deg,#2757E6 50%,#FF8A2B 50%)':P[x.persoon].bg}"></b><div class="card" style="margin-top:0"><div class="row sp"><span class="lab">${fd(x.datum)}</span><span class="row" style="gap:4px">${pill(x.persoon)}${own(x.persoon)?`<button class="x" style="width:28px;height:28px;font-size:20px" data-act="delrit" data-id="${x.id}" aria-label="Verwijderen">×</button>`:''}</span></div><h2 class="big" style="margin-top:2px">${fk(x.dist)} km</h2><p class="lab">${fk(x.from)} → ${fk(x.kmstand)}</p>${x.persoon==='Beide'?`<div style="display:flex;height:12px;border-radius:99px;overflow:hidden;margin-top:10px"><i style="width:50%;background:#2757E6"></i><i style="flex:1;background:#FF8A2B"></i></div><div class="lab row sp" style="margin-top:4px"><span>Joppe ${fk(x.dist/2)} km</span><span>Iebe ${fk(x.dist/2)} km</span></div>`:''}</div></div>`).join('')}${s.r.length?`<div class="rt up" style="--i:9"><b class="mk" style="background:#fff"></b><div class="card" style="margin-top:0"><span class="lab">Startstand, ${fd(s.r[0].datum)}</span><h2 style="font-size:22px;font-weight:800">${fk(s.r[0].kmstand)} km</h2></div></div>`:''}</div>
+<button class="fab" data-act="go" data-v="rit">${ic('plus',22)}<span>Nieuwe rit</span></button>`;
+}
+function vRit(){
+  const digits=String(D.km||'').padStart(6,'•').slice(-6).split('');
+  return `${hd('Rit toevoegen','ritten')}<p class="lab up" style="--i:1;margin:14px 0 8px">Foto van de kilometerteller</p>
+<label class="cam up" style="--i:2" for="kmf">${digits.map(d=>`<em>${d}</em>`).join('')}<u></u><s style="left:14px;top:14px;border-right:0;border-bottom:0;border-radius:8px 0 0 0"></s><s style="right:14px;top:14px;border-left:0;border-bottom:0;border-radius:0 8px 0 0"></s><s style="left:14px;bottom:14px;border-right:0;border-top:0;border-radius:0 0 0 8px"></s><s style="right:14px;bottom:14px;border-left:0;border-top:0;border-radius:0 0 8px 0"></s></label><input type="file" id="kmf" accept="image/*" capture="environment" hidden>
+<div class="row up" style="--i:3;margin-top:12px"><span class="chip" id="st">${D.read?ic('ok',18)+'Afgelezen: '+fk(D.km)+' km':D.st||'Tik op het scherm om een foto te nemen'}</span>${D.read?`<label class="ghost" for="kmf">${ic('re',18)}Opnieuw</label>`:''}</div>
+<label class="lab up" style="--i:4;display:block;margin-top:14px">Kilometerstand</label><input class="in b up" style="--i:4" inputmode="numeric" data-k="km" data-u="rit" value="${D.km||''}" placeholder="Of typ hem zelf in">
+<p class="lab up" style="--i:5;margin:18px 0 0">Wie reed er?</p><div class="who up" style="--i:5" role="group" aria-label="Wie reed">${['Joppe','Iebe','Beide'].map(n=>`<button data-act="rw" data-n="${n}"${D.who===n?` style="background:${P[n].bg};color:${P[n].fg}"`:''}>${n}</button>`).join('')}</div>
+<div id="ritcalc"></div><button class="btn cta up" style="--i:8" data-act="ritsave">Zet mo vaste!</button>`;
+}
+function vAfrek(){
+  const s=stats(),o=owe(s.bal),tot=s.total||1,pJ=s.km.Joppe/tot,rate=s.rate;
+  const sh={Joppe:s.km.Joppe*rate,Iebe:s.km.Iebe*rate},mx=Math.max(s.paid.Joppe,s.paid.Iebe,sh.Joppe,sh.Iebe,1);
+  const col=n=>`<div style="text-align:center"><div style="display:flex;gap:8px;align-items:flex-end;height:128px">${[[s.paid[n],P[n].bg,'0'],[sh[n],n==='Joppe'?'#B9C9FF':'#FFD2AE','2px solid '+P[n].bg]].map(([v,bg,b])=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px"><b style="font-size:12px;font-weight:800">${eur(v)}</b><div class="gy" style="width:44px;height:${Math.max(4,v/mx*100)}px;border-radius:12px 12px 6px 6px;background:${bg};border:${b}"></div></div>`).join('')}</div><p style="font-weight:800;font-size:15px;margin-top:6px">${n}</p></div>`;
+  const af=data.afrekeningen.slice().sort((a,b)=>(b.datum||'').localeCompare(a.datum||'')).slice(0,6);
+  return `<div class="top up"><h1 class="h">Afrekening</h1></div>
+<div class="pay up" style="--i:1"><div class="row">${av(o?o[0]:'Iebe').replace('width:40px','')}<div style="flex:1;position:relative;height:30px;border-top:3px dashed #5A5675"><i style="position:absolute;top:-16px;width:30px;height:30px;border-radius:50%;background:#C8F24D;color:#17142B;display:grid;place-items:center;font-weight:800;font-style:normal;animation:coin 2.4s ease-in-out infinite">€</i></div>${av(o?o[1]:'Joppe')}</div>
+<p style="font-weight:700;font-size:15px;margin-top:6px">${o?o[0]+' betaalt '+o[1]:'Jullie staan effen'}</p><h2 style="font-size:44px;font-weight:800;letter-spacing:-1.5px;color:#C8F24D;line-height:1.1">${eur(Math.abs(s.bal))}</h2></div>
+<div class="card up row" style="--i:2;gap:16px"><svg width="96" height="96" viewBox="0 0 100 100"><g transform="rotate(-90 50 50)"><circle cx="50" cy="50" r="44" fill="none" stroke="#FF8A2B" stroke-width="12"/><circle cx="50" cy="50" r="44" fill="none" stroke="#2757E6" stroke-width="12" stroke-dasharray="${s.total?pJ*276.5:0} 276.5"/></g></svg><div style="flex:1"><h2 style="font-size:16px;font-weight:800;margin-bottom:8px">Wie reed hoeveel</h2>${NAMES.map(n=>`<p class="row sp" style="font-weight:800;margin-top:6px"><span>${dot(n)} ${n}</span><span>${fk(s.km[n])} km</span></p>`).join('')}</div></div>
+<div class="card up" style="--i:3"><div class="row sp"><h2 style="font-size:16px;font-weight:800">Betaald vs gereden</h2><span class="lab">${eur(rate)} per km</span></div><div style="display:flex;justify-content:space-around;margin-top:8px">${NAMES.map(col).join('')}</div><p class="lab" style="margin-top:6px;text-align:center">Gevuld = betaald, licht = aandeel in de kosten voor de gereden km</p></div>
+${af.length?`<h2 class="up" style="--i:4;font-size:20px;font-weight:800;margin:16px 0 0">Eerdere afrekeningen</h2>`+af.map(a=>`<div class="card row" style="padding:12px 16px;margin-top:8px">${av(a.betaler)}<div style="flex:1"><b>${a.betaler} aan ${a.ontvanger}</b><p class="lab">${fd(a.datum)}, ${a.methode||''}</p></div><b style="font-size:18px">${eur(num(a.bedrag))}</b><button class="x" data-act="delaf" data-id="${a.id}" aria-label="Verwijderen">×</button></div>`).join(''):''}
+<button class="fab" data-act="go" data-v="afadd">${ic('plus',22)}<span>Afrekening toevoegen</span></button>`;
+}
+function afInfo(){const b=stats().bal,o=owe(b)||[cfg.me||'Joppe',other(cfg.me||'Joppe')],amt=num(D.bedrag),after=b-(o[0]==='Iebe'?1:-1)*amt;return{b,o,amt,after}}
+function vAfAdd(){
+  const{b,o}=afInfo();
+  return `${hd('Afrekening','afrek')}<p class="lab up" style="--i:1;margin:14px 0 8px">Wie betaalt wie?</p>
+<div class="card up row sp" style="--i:2;margin:0;padding:16px 22px">${av(o[0])}<span style="animation:bob 1.6s ease-in-out infinite">${ic('arr',32)}</span>${av(o[1])}</div>
+<p class="lab up" style="--i:3;text-align:center;margin-top:6px">${o[0]} betaalt aan ${o[1]}</p>
+<div class="up dw" style="--i:4;margin-top:16px"><label class="lab">Bedrag (€)</label><input class="in b" style="height:60px;font-size:28px" inputmode="decimal" data-k="bedrag" data-u="af" value="${D.bedrag||''}"></div>
+<div id="afinfo"></div>
+<p class="lab up" style="--i:6;margin:18px 0 8px">Hoe betaald?</p><div class="who up" style="--i:7">${['Overschrijving','Cash'].map(m=>`<button data-act="meth" data-m="${m}"${D.meth===m?' style="background:#2757E6;color:#fff"':''}>${m}</button>`).join('')}</div>
+<button class="btn cta up" style="--i:9" data-act="afsave">Afrekening opslaan</button>`;
+}
+const UPD={
+  tb(){const b=num(D.bedrag),l=num(D.liters);$('#ppl').innerHTML=b>0&&l>0?`<span class="chip">${ic('ok',18)}${eur(b/l)} per liter</span>`:''},
+  rit(){
+    const k=num(D.km),prev=Math.max(0,...data.ritten.map(x=>+x.kmstand||0)),ok=prev&&k>prev;let h=`<div class="card row sp"><div><p class="lab">Deze rit</p><h2 class="big" style="font-size:34px">${prev?ok?fk(k-prev)+' km':'—':'Start'}</h2></div><div style="text-align:right"><p class="lab">Vorige stand</p><p style="font-weight:800;font-size:18px">${prev?fk(prev)+' km':'nog geen'}</p></div></div>`;
+    if(ok){const s=stats([{kmstand:k,persoon:D.who,datum:T()}]),o=owe(s.bal);h+=`<div class="row sp" style="margin-top:12px;background:#FF8A2B;border-radius:24px;padding:16px"><div><p style="font-size:13px;font-weight:700">Saldo na tanken</p><h2 style="font-size:20px;font-weight:800">${o?o[0]+' betaalt '+o[1]:'Jullie staan effen'}</h2></div><b style="font-size:26px;font-weight:800">${eur(Math.abs(s.bal))}</b></div>`}
+    $('#ritcalc').innerHTML=h},
+  af(){
+    const{b,amt,after}=afInfo(),f=Math.abs(b)>.005?Math.min(1,Math.abs(after)/Math.abs(b)):0;
+    $('#afinfo').innerHTML=`<div style="margin-top:12px">${Math.abs(amt-Math.abs(b))<.005?`<span class="chip">${ic('ok',18)}Precies het saldo: ${eur(Math.abs(b))}</span>`:`<span class="lab">Het huidige saldo is ${eur(Math.abs(b))}</span>`}</div><div class="card"><div class="row sp" style="align-items:baseline"><p class="lab">Saldo na deze afrekening</p><b style="font-size:22px;font-weight:800">${eur(Math.abs(after))}</b></div><div style="height:14px;border-radius:99px;background:#C8F24D;margin-top:10px;overflow:hidden"><div style="height:100%;width:${f*100}%;background:#FF8A2B;transition:width .4s"></div></div><p class="lab" style="margin-top:6px">${Math.abs(after)<.005?'Daarna staan jullie effen':after*(b||1)<0?'Let op: dit is meer dan het saldo':'Daarna blijft er nog een saldo over'}</p></div>`}
+};
+const NAV=['home','tanken','ritten','afrek'],FORMS=['res','tb','rit','afadd'];
+const VIEWS={home:vHome,res:vRes,tanken:vTanken,tb:vTb,ritten:vRitten,rit:vRit,afrek:vAfrek,afadd:vAfAdd};
+function render(soft){
+  if(soft&&FORMS.includes(view))return;
+  const nv=[['home','cal','Planner'],['tanken','pump','Tanken'],['ritten','route','Ritten'],['afrek','bill','Afrekening']];
+  $('#app').innerHTML=VIEWS[view]()+(NAV.includes(view)?`<nav aria-label="Hoofdmenu">${nv.map(([v,i,t])=>`<button data-v="${v}" class="${v===view?'on':''}">${ic(i)}${t}</button>`).join('')}</nav>`:'');
+  if(UPD[{tb:'tb',rit:'rit',afadd:'af'}[view]])UPD[{tb:'tb',rit:'rit',afadd:'af'}[view]]();
+}
+function go(v,d){
+  const init={res:()=>({ad:true,ds:T(),de:T(),ts:'09:00',te:'10:00',note:''}),tb:()=>({datum:T(),vol:true}),rit:()=>({who:cfg.me||'Joppe',km:''}),afadd:()=>({bedrag:nl(Math.abs(stats().bal)),meth:'Overschrijving'})};
+  view=v;D=Object.assign(init[v]?init[v]():{},d||{});if(v==='res'&&D.ds>D.de)D.de=D.ds;
+  const a=$('#app');a.classList.add('anim');clearTimeout(go.t);go.t=setTimeout(()=>a.classList.remove('anim'),1300);
+  render();scrollTo(0,0);
 }
 function shrink(file){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8).split(',')[1])};im.onerror=no;im.src=URL.createObjectURL(file)})}
-function render(){
-  $('#me').innerHTML=NAMES.map(n=>`<button data-act="who" data-n="${n}" class="${n===cfg.me?'on':''}" style="--c:${COL[n]}">${n}</button>`).join('')+'<button data-act="setup" aria-label="Instellingen">⚙</button>';
-  
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
-  $('#agenda').hidden=view!=='agenda';$('#tanken').hidden=view!=='tanken';$('#ritten').hidden=view!=='ritten';
-  renderAgenda();renderRitten();renderTanken();
+async function readImg(file,action,done){
+  if(!file)return;const v=view;D.st='Foto wordt afgelezen...';const el=$('#st');if(el)el.textContent=D.st;
+  try{const j=await call({action,image:await shrink(file)});done(j);D.st=''}
+  catch(e){D.st='Aflezen lukte niet ('+e.message+'). Vul het zelf in.'}
+  if(view===v)render();
 }
-function sheet(html){$('#sheet').innerHTML=html;document.body.classList.add('open')}
-function daySheet(k){
-  const rs=data.reserveringen.filter(r=>cov(r,k));
-  sheet(`<h2>${new Date(k+'T00:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</h2>`
-   +(rs.map(r=>`<div class="row"><i style="background:${COL[r.persoon]}"></i><div><b>${r.persoon}</b>, ${tspan(r)}${r.opmerking?`<br><small>${r.opmerking}</small>`:''}</div><button data-act="delr" data-id="${r.id}" data-d="${k}" aria-label="Annuleren">×</button></div>`).join('')||'<p class="mute">Deze dag is vrij.</p>')
-   +`<div id="rv" class="allday"><h3 style="margin:14px 0 8px">Nieuwe reservering</h3>
-   <label class="chk"><input type="checkbox" id="ad" checked> Hele dag</label>
-   <div class="mute" style="font-size:.85rem">Van</div><div class="dt"><input class="field" type="date" id="ds" value="${k}"><input class="field tm" type="time" id="ts" value="09:00"></div>
-   <div class="mute" style="font-size:.85rem">Tot</div><div class="dt"><input class="field" type="date" id="de" value="${k}" min="${k}"><input class="field tm" type="time" id="te" value="10:00"></div>
-   <input class="field" id="note" placeholder="Opmerking (bv. boodschappen)">
-   <button class="go" style="background:${COL[cfg.me]||'var(--ink)'}" data-act="resv">Reserveren${cfg.me?' voor '+cfg.me:''}</button></div>`);
-}
+function sheet(h){$('#sheet').innerHTML=h;document.body.classList.add('open')}
 function setupSheet(){
-  sheet(`<h2>Instellingen</h2>${cfg.me?'':'<p class="mute" style="margin-bottom:8px">Wie ben jij?</p>'+who('me',cfg.me)}<p class="mute" style="margin-bottom:4px">Geheime sleutel</p><input class="field" id="kk" type="password" value="${cfg.key}" autocomplete="off"><button class="go" data-act="savecfg">Opslaan</button>`);
+  const pick=NAMES.map(n=>`<label style="flex:1"><input type="radio" name="me" value="${n}" ${n===cfg.me?'checked':''} style="accent-color:${P[n].bg}"> ${n}</label>`).join('');
+  sheet(`<h2 style="font-size:22px;font-weight:800;margin-bottom:12px">Instellingen</h2>${cfg.me?'':`<p class="lab" style="margin-bottom:6px">Wie ben jij?</p><div class="row" style="margin-bottom:12px;font-weight:700">${pick}</div>`}<p class="lab">Geheime sleutel</p><input class="in" id="kk" type="password" value="${cfg.key}" autocomplete="off"><button class="btn" style="margin-top:14px" data-act="savecfg">Opslaan</button>`);
+}
+function saveRes(){
+  if(needMe())return;const{ad,ds,de,ts,te,note}=D,t1=ad?'':ts,t2=ad?'':te;
+  if(!ds||!de||de<ds||(!ad&&(!t1||!t2||(de===ds&&t2<=t1)))){toast('Het einde moet na het begin liggen.');return}
+  const nr={datum:ds,eind:de>ds?de:'',persoon:cfg.me,van:t1,tot:t2,opmerking:(note||'').trim()},[a,b]=rng(nr),c=data.reserveringen.find(r=>a<rng(r)[1]&&rng(r)[0]<b);
+  if(c){toast('Overlapt met '+c.persoon+' ('+tspan(c)+').');return}
+  add('reservering',nr);go('home');
 }
 document.addEventListener('click',e=>{
-  const nv=e.target.closest('nav button');
-  if(nv){view=nv.dataset.v;render();return}
-  const b=e.target.closest('[data-act]');if(!b)return;
-  const a=b.dataset.act,d=b.dataset;
-  if(a==='prev'||a==='next'){cur.setMonth(cur.getMonth()+(a==='next'?1:-1));render()}
-  else if(a==='day')daySheet(d.d);
-  else if(a==='close')document.body.classList.remove('open');
-  else if(a==='setup')setupSheet();
-  else if(a==='who'){cfg.me=d.n;LS.setItem('ap_me',cfg.me);render()}
-  else if(a==='savecfg'){cfg.me=pick('me')||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);document.body.classList.remove('open');render();sync()}
-  else if(a==='resv'){
-    if(needMe())return;
-    const ad=$('#ad').checked,ds=$('#ds').value,de=$('#de').value||ds,ts=ad?'':$('#ts').value,te=ad?'':$('#te').value;
-    if(!ds){toast('Kies een begindatum.');return}
-    if(de<ds||(!ad&&(!ts||!te||(de===ds&&te<=ts)))){toast('Het einde moet na het begin liggen.');return}
-    const nr={datum:ds,eind:de>ds?de:'',persoon:cfg.me,van:ts,tot:te,opmerking:$('#note').value.trim()},[a1,b1]=rng(nr);
-    const c=data.reserveringen.find(r=>a1<rng(r)[1]&&rng(r)[0]<b1);
-    if(c){toast('Overlapt met '+c.persoon+' ('+tspan(c)+').');return}
-    add('reservering',nr);document.body.classList.remove('open')}
-  else if(a==='delr'){del('reservering',d.id);setTimeout(()=>daySheet(d.d),0)}
-  else if(a==='delt'){if(confirm('Deze tankbeurt verwijderen?'))del('tankbeurt',d.id)}
-  else if(a==='delrit'){if(confirm('Deze kilometerstand verwijderen?'))del('rit',d.id)}
+  const nv=e.target.closest('nav button');if(nv){go(nv.dataset.v);return}
+  const b=e.target.closest('[data-act]');if(!b)return;const d=b.dataset;
+  ({go:()=>go(d.v),
+   prev:()=>{cur.setMonth(cur.getMonth()-1);render()},next:()=>{cur.setMonth(cur.getMonth()+1);render()},
+   dayp:()=>go('res',{ds:d.d,de:d.d}),
+   who:()=>{cfg.me=d.n;LS.setItem('ap_me',cfg.me);render()},
+   tgl:()=>{D[d.k]=!D[d.k];render()},rw:()=>{D.who=d.n;render()},meth:()=>{D.meth=d.m;render()},
+   setup:setupSheet,close:()=>document.body.classList.remove('open'),
+   savecfg:()=>{const r=document.querySelector('input[name=me]:checked');cfg.me=(r&&r.value)||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);document.body.classList.remove('open');render();sync()},
+   resv:saveRes,
+   delr:()=>del('reservering',d.id),
+   delt:()=>{if(confirm('Deze tankbeurt verwijderen?'))del('tankbeurt',d.id)},
+   delrit:()=>{if(confirm('Deze kilometerstand verwijderen?'))del('rit',d.id)},
+   delaf:()=>{if(confirm('Deze afrekening verwijderen?'))del('afrekening',d.id)},
+   tbsave:()=>{if(needMe())return;const b=num(D.bedrag),l=num(D.liters);if(b<=0||l<=0){toast('Vul bedrag en liters in.');return}
+     add('tankbeurt',{datum:D.datum,persoon:cfg.me,liters:l,bedrag:b,vol:D.vol?'ja':'nee'});go('tanken')},
+   ritsave:()=>{if(needMe())return;const k=num(D.km),last=Math.max(0,...data.ritten.map(x=>+x.kmstand||0));
+     if(!k){toast('Neem een foto of typ de kilometerstand.');return}if(last&&k<=last){toast('Deze stand moet hoger zijn dan de vorige ('+fk(last)+' km).');return}
+     add('rit',{datum:T(),persoon:D.who||cfg.me,kmstand:k});go('ritten')},
+   afsave:()=>{if(needMe())return;const{o,amt}=afInfo();if(amt<=0){toast('Vul een bedrag in.');return}
+     add('afrekening',{datum:T(),betaler:o[0],ontvanger:o[1],bedrag:amt,methode:D.meth});go('afrek')}
+  })[d.act]?.();
 });
-$('#rf').addEventListener('change',async e=>{
-  const f=e.target.files[0];if(!f)return;
-  $('#rs').textContent='Foto wordt afgelezen...';
-  try{
-    const j=await call({action:'odometer',image:await shrink(f)});
-    $('#rk').value=j.km;$('#rs').textContent='Afgelezen: '+j.km+' km. Controleer of dit klopt.';
-  }catch(err){$('#rs').textContent='Aflezen lukte niet ('+err.message+'). Typ de kilometerstand zelf in.'}
-  e.target.value='';
-});
-$('#rf2').addEventListener('submit',e=>{
-  e.preventDefault();
-  const km=+$('#rk').value,last=Math.max(0,...data.ritten.map(x=>+x.kmstand||0));
-  if(last>0&&km<=last){toast('Deze stand moet hoger zijn dan de vorige ('+last+' km).');return}
-  if(needMe())return;
-  add('rit',{datum:iso(new Date()),persoon:$('#rb').checked?'Beide':cfg.me,kmstand:km});
-  $('#rb').checked=false;$('#rk').value='';$('#rs').textContent='';
-});
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.k&&t.type!=='date'){D[t.dataset.k]=t.value;if(t.dataset.u)UPD[t.dataset.u]()}});
 document.addEventListener('change',e=>{
   const t=e.target;
-  if(t.id==='ad')$('#rv').classList.toggle('allday',t.checked);
-  if(t.id==='ds'&&t.value){const de=$('#de');de.min=t.value;if(!de.value||de.value<t.value)de.value=t.value}
+  if(t.type==='date'&&t.dataset.k){D[t.dataset.k]=t.value;if(D.de<D.ds)D.de=D.ds;render()}
+  if(t.id==='bonf'){readImg(t.files[0],'receipt',j=>{if(j.bedrag)D.bedrag=nl(num(j.bedrag));if(j.liters)D.liters=nl(num(j.liters)).replace(/,00$/,'')});t.value=''}
+  if(t.id==='kmf'){readImg(t.files[0],'odometer',j=>{D.km=j.km;D.read=true});t.value=''}
 });
-$('#tf').addEventListener('submit',e=>{
-  e.preventDefault();
-  if(needMe())return;
-  add('tankbeurt',{datum:$('#td').value,persoon:cfg.me,liters:+$('#tl').value,bedrag:+$('#tb').value,kilometerstand:+$('#tk').value||''});
-  ['tl','tb','tk'].forEach(i=>$('#'+i).value='');
-});
-$('#td').value=today;
 render();
 if(!cfg.key||!cfg.me)setupSheet();else sync();
+setTimeout(()=>$('#app').classList.remove('anim'),1300);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script>
