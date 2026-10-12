@@ -215,7 +215,7 @@ ${f.map(x=>`<div class="card row" style="padding:12px 16px;margin-top:8px">${av(
 }
 function vTb(){
   return `${hd('Tankbeurt','tanken')}<p class="lab up" style="--i:1;margin:14px 0 0">${as()}Je tankt als ${cfg.me||'…'}</p>
-<label class="rc up" style="--i:2" for="bonf"><u></u><span class="bob">${ic('cam',34)}</span><b style="font-size:17px;font-weight:800">Foto van de bon</b><span class="lab" id="st">${D.st||'Bedrag en liters vul je dan niet zelf in'}</span></label><input type="file" id="bonf" accept="image/*" capture="environment" hidden>
+<label class="rc up" style="--i:2" for="bonf"><u></u><span class="bob">${ic('cam',34)}</span><b style="font-size:17px;font-weight:800">Foto van de bon</b><span class="lab" id="st">${D.st||'Bedrag en liters worden afgelezen, je kan ze nog aanpassen'}</span></label><input type="file" id="bonf" accept="image/*" capture="environment" hidden>
 <div class="two up" style="--i:3"><div><label class="lab">Bedrag (€)</label><input class="in b" inputmode="decimal" data-k="bedrag" data-u="tb" value="${D.bedrag||''}"></div><div><label class="lab">Liters</label><input class="in b" inputmode="decimal" data-k="liters" data-u="tb" value="${D.liters||''}"></div></div>
 <div id="ppl" style="margin-top:12px;min-height:38px"></div>
 <div class="card up dw" style="--i:5"><div class="row sp"><div><p class="lab">Wanneer</p><h2 style="font-size:20px;font-weight:800">${D.datum===T()?'Vandaag, ':''}${fd(D.datum)}</h2></div>${ic('cal')}</div><input type="date" data-k="datum" value="${D.datum}" max="${T()}"></div>
@@ -225,14 +225,14 @@ function vTb(){
 function vRitten(){
   const s=stats(),legs=s.legs.slice().sort((a,b)=>b.kmstand-a.kmstand);
   return `<div class="top up"><h1 class="h">Ritten</h1></div>
-${s.r.length>1?`<div class="row up" style="--i:1;margin:12px 0 0;flex-wrap:wrap;gap:8px"><span class="lab">Sinds ${fd(s.r[0].datum)}</span>${NAMES.map(n=>`<span class="pill" style="background:${P[n].bg};color:${P[n].fg};padding:8px 14px;font-size:14px">${n} ${fk(s.km[n])} km</span>`).join('')}</div>`:'<p class="lab up" style="--i:1;margin-top:12px">Maak een eerste foto als startstand. Daarna telt elke foto de kilometers sinds de vorige.</p>'}
+${s.r.length>1?`<div class="row up" style="--i:1;margin:12px 0 0;flex-wrap:wrap;gap:8px"><span class="lab">Sinds ${fd(s.r[0].datum)}</span>${NAMES.map(n=>`<span class="pill" style="background:${P[n].bg};color:${P[n].fg};padding:8px 14px;font-size:14px">${n} ${fk(s.km[n])} km</span>`).join('')}</div>`:'<p class="lab up" style="--i:1;margin-top:12px">Maak een eerste foto (of typ een stand in) als startstand. Daarna telt elke nieuwe stand de kilometers sinds de vorige.</p>'}
 <div class="tl"><div class="rd"><i></i></div>${legs.map((x,i)=>`<div class="rt up" style="--i:${i+2}"><b class="mk" style="background:${x.persoon==='Beide'?'linear-gradient(90deg,#2757E6 50%,#FF8A2B 50%)':P[x.persoon].bg}"></b><div class="card" style="margin-top:0"><div class="row sp"><span class="lab">${fd(x.datum)}</span><span class="row" style="gap:4px">${pill(x.persoon)}${own(x.persoon)?`<button class="x" style="width:28px;height:28px;font-size:20px" data-act="delrit" data-id="${x.id}" aria-label="Verwijderen">×</button>`:''}</span></div><h2 class="big" style="margin-top:2px">${fk(x.dist)} km</h2><p class="lab">${fk(x.from)} → ${fk(x.kmstand)}</p>${x.persoon==='Beide'?`<div style="display:flex;height:12px;border-radius:99px;overflow:hidden;margin-top:10px"><i style="width:50%;background:#2757E6"></i><i style="flex:1;background:#FF8A2B"></i></div><div class="lab row sp" style="margin-top:4px"><span>Joppe ${fk(x.dist/2)} km</span><span>Iebe ${fk(x.dist/2)} km</span></div>`:''}</div></div>`).join('')}${s.r.length?`<div class="rt up" style="--i:9"><b class="mk" style="background:#fff"></b><div class="card" style="margin-top:0"><span class="lab">Startstand, ${fd(s.r[0].datum)}</span><h2 style="font-size:22px;font-weight:800">${fk(s.r[0].kmstand)} km</h2></div></div>`:''}</div>
 <button class="fab" data-act="go" data-v="rit">${ic('plus',22)}<span>Nieuwe rit</span></button>`;
 }
+const camDigits=()=>String(D.km||'').padStart(6,'•').slice(-6).split('').map(d=>`<em>${d}</em>`).join('')+'<u></u>';
 function vRit(){
-  const digits=String(D.km||'').padStart(6,'•').slice(-6).split('');
   return `${hd('Rit toevoegen','ritten')}<p class="lab up" style="--i:1;margin:14px 0 8px">Foto van de kilometerteller</p>
-<label class="cam up" style="--i:2" for="kmf">${digits.map(d=>`<em>${d}</em>`).join('')}<u></u><s style="left:14px;top:14px;border-right:0;border-bottom:0;border-radius:8px 0 0 0"></s><s style="right:14px;top:14px;border-left:0;border-bottom:0;border-radius:0 8px 0 0"></s><s style="left:14px;bottom:14px;border-right:0;border-top:0;border-radius:0 0 0 8px"></s><s style="right:14px;bottom:14px;border-left:0;border-top:0;border-radius:0 0 8px 0"></s></label><input type="file" id="kmf" accept="image/*" capture="environment" hidden>
+<label class="cam up" style="--i:2" for="kmf" id="cam">${camDigits()}</label><input type="file" id="kmf" accept="image/*" capture="environment" hidden>
 <div class="row up" style="--i:3;margin-top:12px"><span class="chip" id="st">${D.read?ic('ok',18)+'Afgelezen: '+fk(D.km)+' km':D.st||'Tik op het scherm om een foto te nemen'}</span>${D.read?`<label class="ghost" for="kmf">${ic('re',18)}Opnieuw</label>`:''}</div>
 <label class="lab up" style="--i:4;display:block;margin-top:14px">Kilometerstand</label><input class="in b up" style="--i:4" inputmode="numeric" data-k="km" data-u="rit" value="${D.km||''}" placeholder="Of typ hem zelf in">
 <p class="lab up" style="--i:5;margin:18px 0 0">Wie reed er?</p><div class="who up" style="--i:5" role="group" aria-label="Wie reed">${['Joppe','Iebe','Beide'].map(n=>`<button data-act="rw" data-n="${n}"${D.who===n?` style="background:${P[n].bg};color:${P[n].fg}"`:''}>${n}</button>`).join('')}</div>
@@ -265,6 +265,7 @@ function vAfAdd(){
 const UPD={
   tb(){const b=num(D.bedrag),l=num(D.liters);$('#ppl').innerHTML=b>0&&l>0?`<span class="chip">${ic('ok',18)}${eur(b/l)} per liter</span>`:''},
   rit(){
+    const cm=$('#cam');if(cm)cm.innerHTML=camDigits();
     const k=num(D.km),prev=Math.max(0,...data.ritten.map(x=>+x.kmstand||0)),ok=prev&&k>prev;let h=`<div class="card row sp"><div><p class="lab">Deze rit</p><h2 class="big" style="font-size:34px">${prev?ok?fk(k-prev)+' km':'—':'Start'}</h2></div><div style="text-align:right"><p class="lab">Vorige stand</p><p style="font-weight:800;font-size:18px">${prev?fk(prev)+' km':'nog geen'}</p></div></div>`;
     if(ok){const s=stats([{kmstand:k,persoon:D.who,datum:T()}]),o=owe(s.bal);h+=`<div class="row sp" style="margin-top:12px;background:#FF8A2B;border-radius:24px;padding:16px"><div><p style="font-size:13px;font-weight:700">Saldo na tanken</p><h2 style="font-size:20px;font-weight:800">${o?o[0]+' betaalt '+o[1]:'Jullie staan effen'}</h2></div><b style="font-size:26px;font-weight:800">${eur(Math.abs(s.bal))}</b></div>`}
     $('#ritcalc').innerHTML=h},
@@ -288,9 +289,11 @@ function go(v,d){
 }
 function shrink(file){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8).split(',')[1])};im.onerror=no;im.src=URL.createObjectURL(file)})}
 async function readImg(file,action,done){
-  if(!file)return;const v=view;D.st='Foto wordt afgelezen...';const el=$('#st');if(el)el.textContent=D.st;
-  try{const j=await call({action,image:await shrink(file)});done(j);D.st=''}
-  catch(e){D.st='Aflezen lukte niet ('+e.message+'). Vul het zelf in.'}
+  if(!file)return;const v=view;D.st='Foto wordt afgelezen, even geduld...';const el=$('#st');if(el)el.textContent=D.st;
+  try{
+    const j=await Promise.race([call({action,image:await shrink(file)}),new Promise((_,no)=>setTimeout(()=>no(new Error('geen antwoord na 40 seconden')),40000))]);
+    done(j);D.st='';
+  }catch(e){D.st='Aflezen lukte niet ('+e.message+'). Vul het zelf in.'}
   if(view===v)render();
 }
 function sheet(h){$('#sheet').innerHTML=h;document.body.classList.add('open')}
