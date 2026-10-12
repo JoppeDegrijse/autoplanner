@@ -33,8 +33,8 @@ nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:28px 28
 nav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:700;min-width:70px;height:56px;justify-content:center;border-radius:20px;color:var(--mute)}
 nav .on{background:#E3EAFF;color:#1B3FB8}
 .seg{display:flex;background:#fff;border-radius:20px;padding:4px;margin:14px 0}.seg button{flex:1;height:44px;border-radius:16px;font-weight:800;font-size:15px}
-.hero{background:var(--blue);color:#fff;border-radius:28px;padding:18px 18px 0;height:150px;position:relative;overflow:hidden}.hero.busy{background:var(--ink)}
-.hero h2{font-size:24px;font-weight:800;margin-top:10px;letter-spacing:-.4px;width:190px;line-height:1.15}.hero p{font-size:14px;margin-top:4px;width:190px}
+.hero{background:var(--blue);color:#fff;border-radius:28px;padding:18px 18px 44px;min-height:150px;position:relative;overflow:hidden}.hero.busy{background:var(--ink)}
+.hero h2{font-size:24px;font-weight:800;margin-top:10px;letter-spacing:-.4px;width:170px;line-height:1.15}.hero p{font-size:14px;margin-top:4px;width:170px}
 .road{position:absolute;left:0;right:0;bottom:0;height:26px;background:var(--ink)}.hero.busy .road{background:#000}
 .road i{position:absolute;left:0;right:0;top:11px;height:4px;background:repeating-linear-gradient(90deg,#F5F2FF 0 24px,transparent 24px 48px);animation:road .8s linear infinite}
 .car{position:absolute;right:10px;bottom:10px;animation:bob 1.6s ease-in-out infinite}
@@ -68,6 +68,11 @@ nav .on{background:#E3EAFF;color:#1B3FB8}
 #sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:20px 20px calc(20px + var(--bot));transform:translateY(105%);transition:transform .22s ease;max-height:85%;overflow-y:auto;z-index:10}
 body.open #scrim{opacity:1;pointer-events:auto}body.open #sheet{transform:none}
 #toast{position:fixed;left:16px;right:16px;bottom:calc(150px + var(--bot));background:var(--ink);color:#fff;padding:12px 14px;border-radius:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}#toast.on{opacity:1}
+#dlg{position:fixed;inset:0;background:rgba(23,20,43,.65);display:grid;place-items:center;z-index:30;padding:24px}
+.dbox{background:#fff;border-radius:28px;padding:24px 22px 22px;width:100%;max-width:340px;animation:pop .35s cubic-bezier(.2,.9,.3,1.3) both}
+.dbox h2{font-size:26px;font-weight:800;letter-spacing:-.5px;text-align:center}
+.drow{display:flex;gap:10px;margin-top:20px}.drow button{flex:1;height:54px;border-radius:18px;font-weight:800;font-size:17px}
+.dno{background:var(--lt)}.dyes{background:#E5484D;color:#fff}
 .anim .up{animation:up .6s cubic-bezier(.2,.9,.3,1.2) both;animation-delay:calc(var(--i,0)*70ms)}
 .anim .pop{animation:pop .5s cubic-bezier(.2,.9,.3,1.4) both;animation-delay:calc(var(--i,0)*25ms + .2s)}
 .anim .gr{animation:grow .9s .3s cubic-bezier(.2,.9,.3,1) both}.anim .gy{animation:growy .8s .3s cubic-bezier(.2,.9,.3,1.2) both;transform-origin:bottom}
@@ -311,7 +316,19 @@ function go(v,d,mode){const cs=history.state||{i:0};history[mode==='replace'?'re
 function back(){if((history.state||{}).i>0)history.back();else show('home')}
 function navTo(v){if(v===view)return;if(v==='home'){back();return}go(v,{},view==='home'?'push':'replace')}
 function closeSheet(){if(!document.body.classList.contains('open'))return;document.body.classList.remove('open');if((history.state||{}).sh)history.back()}
-window.addEventListener('popstate',e=>{document.body.classList.remove('open');const st=e.state||{v:'home',d:{}};if(st.sh)return;show(st.v,st.d)});
+let dgOpen=false,dlgYes=null,afterDlg=null;
+function ask(onYes){
+  if(dgOpen)return;
+  const el=document.createElement('div');el.id='dlg';el.setAttribute('role','alertdialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','dq');
+  el.innerHTML='<div class="dbox"><h2 id="dq">Ziej zeker?</h2><div class="drow"><button class="dno" data-dlg="no">Nink</button><button class="dyes" data-dlg="yes">Joak</button></div></div>';
+  document.body.appendChild(el);history.pushState({...(history.state||{v:'home',d:{},i:0}),dg:1},'');
+  dgOpen=true;dlgYes=onYes;el.querySelector('.dno').focus();
+}
+function endDlg(yes){if(!dgOpen)return;const el=$('#dlg');if(el)el.remove();afterDlg=yes?dlgYes:null;dlgYes=null;history.back()}
+window.addEventListener('popstate',e=>{
+  document.body.classList.remove('open');
+  if(dgOpen){dgOpen=false;const el=$('#dlg');if(el)el.remove();const f=afterDlg;afterDlg=null;dlgYes=null;if(f)f();return}
+  const st=e.state||{v:'home',d:{}};if(st.sh)return;show(st.v,st.d)});
 function shrink(file){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8).split(',')[1])};im.onerror=no;im.src=URL.createObjectURL(file)})}
 async function readImg(file,action,done){
   if(!file)return;const v=view;D.st='Foto wordt afgelezen, even geduld...';const el=$('#st');if(el)el.textContent=D.st;
@@ -334,22 +351,23 @@ function saveRes(){
   if(D.id){if(String(D.id).startsWith('tmp')){toast('Even geduld, deze reservering wordt nog opgeslagen.');return}upd('reservering',D.id,nr)}else add('reservering',nr);back();
 }
 document.addEventListener('click',e=>{
+  const dg=e.target.closest('[data-dlg]');if(dg){endDlg(dg.dataset.dlg==='yes');return}if(e.target.id==='dlg'){endDlg(false);return}
   const nv=e.target.closest('nav button');if(nv){navTo(nv.dataset.v);return}
   const b=e.target.closest('[data-act]');if(!b)return;const d=b.dataset;
   ({go:()=>go(d.v),
    prev:()=>{cur.setMonth(cur.getMonth()-1);render()},next:()=>{cur.setMonth(cur.getMonth()+1);render()},
    dayp:()=>go('day',{date:d.d}),newres:()=>go('res',{ds:d.d,de:d.d}),back,
    edit:()=>{const r=data.reserveringen.find(x=>x.id===d.id);if(!r)return;if(String(r.id).startsWith('tmp')){toast('Even geduld, deze reservering wordt nog opgeslagen.');return}go('res',{id:r.id,ad:!r.van&&!r.tot,ds:r.datum,de:r.eind||r.datum,ts:r.van||'09:00',te:r.tot||'10:00',note:r.opmerking||''})},
-   delres:()=>{if(confirm('Deze reservering verwijderen?')){del('reservering',D.id);back()}},
+   delres:()=>{const id=D.id;ask(()=>{del('reservering',id);back()})},
    who:()=>{cfg.me=d.n;LS.setItem('ap_me',cfg.me);render()},
    tgl:()=>{D[d.k]=!D[d.k];render()},rw:()=>{D.who=d.n;render()},meth:()=>{D.meth=d.m;render()},
    setup:setupSheet,close:closeSheet,
    savecfg:()=>{const r=document.querySelector('input[name=me]:checked');cfg.me=(r&&r.value)||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);closeSheet();render();sync()},
    resv:saveRes,
-   delr:()=>del('reservering',d.id),
-   delt:()=>{if(confirm('Deze tankbeurt verwijderen?'))del('tankbeurt',d.id)},
-   delrit:()=>{if(confirm('Deze kilometerstand verwijderen?'))del('rit',d.id)},
-   delaf:()=>{if(confirm('Deze afrekening verwijderen?'))del('afrekening',d.id)},
+   delr:()=>ask(()=>del('reservering',d.id)),
+   delt:()=>ask(()=>del('tankbeurt',d.id)),
+   delrit:()=>ask(()=>del('rit',d.id)),
+   delaf:()=>ask(()=>del('afrekening',d.id)),
    tbsave:()=>{if(needMe())return;const b=num(D.bedrag),l=num(D.liters);if(b<=0||l<=0){toast('Vul bedrag en liters in.');return}
      add('tankbeurt',{datum:D.datum,persoon:cfg.me,liters:l,bedrag:b,vol:D.vol?'ja':'nee'});back()},
    ritsave:()=>{if(needMe())return;const k=num(D.km),last=Math.max(0,...data.ritten.map(x=>+x.kmstand||0));
