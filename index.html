@@ -104,7 +104,7 @@ const rng=r=>[dn(r.datum)*1440+(r.van?mins(r.van):0),dn(r.eind||r.datum)*1440+(r
 const multi=r=>r.eind&&r.eind!==r.datum,cov=(r,k)=>r.datum<=k&&(r.eind||r.datum)>=k;
 const tspan=r=>multi(r)?(fd(r.datum)+' '+(r.van||'')+' tot '+fd(r.eind)+' '+(r.tot||'')).replace(/ +/g,' ').trim():(r.van&&r.tot?r.van+' tot '+r.tot:'hele dag');
 const svg=(p,s=24)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
-const IC={cal:'<rect x="3" y="5" width="18" height="16" rx="4"/><path d="M8 3v4M16 3v4M3 11h18"/>',pump:'<path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h14M15 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/><path d="M8 8h4"/>',route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/>',bill:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',back:'<path d="M15 6l-6 6 6 6"/>',plus:'<path d="M12 5v14M5 12h14"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',cam:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',ok:'<path d="M5 12l5 5 9-10"/>',arr:'<path d="M5 12h14M13 6l6 6-6 6"/>',re:'<path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 10A8 8 0 0 0 6 6L4 10M4 14a8 8 0 0 0 14 4l2-4"/>'};
+const IC={cal:'<rect x="3" y="5" width="18" height="16" rx="4"/><path d="M8 3v4M16 3v4M3 11h18"/>',pump:'<path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h14M15 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/><path d="M8 8h4"/>',route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/>',bill:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',back:'<path d="M15 6l-6 6 6 6"/>',plus:'<path d="M12 5v14M5 12h14"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',cam:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',ok:'<path d="M5 12l5 5 9-10"/>',arr:'<path d="M5 12h14M13 6l6 6-6 6"/>',re:'<path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 10A8 8 0 0 0 6 6L4 10M4 14a8 8 0 0 0 14 4l2-4"/>',chev:'<path d="M9 6l6 6-6 6"/>'};
 const ic=(n,s)=>svg(IC[n],s);
 const CAR='<svg width="150" height="76" viewBox="0 0 150 76" aria-hidden="true"><rect x="6" y="32" width="138" height="26" rx="12" fill="#C8F24D"/><path d="M36 32L50 11Q53 7 58 7H92Q97 7 101 11L116 32Z" fill="#C8F24D"/><path d="M46 30L56 14H70V30ZM76 30V14H92L103 30Z" fill="#17142B"/><g style="transform-box:fill-box;transform-origin:center;animation:spin 1.2s linear infinite"><circle cx="38" cy="60" r="12" fill="#17142B"/><path d="M38 51V69M29 60H47" stroke="#F5F2FF" stroke-width="3"/></g><g style="transform-box:fill-box;transform-origin:center;animation:spin 1.2s linear infinite"><circle cx="112" cy="60" r="12" fill="#17142B"/><path d="M112 51V69M103 60H121" stroke="#F5F2FF" stroke-width="3"/></g></svg>';
 const pill=n=>`<span class="pill" style="background:${P[n].bg};color:${P[n].fg}">${n}</span>`;
@@ -142,6 +142,12 @@ async function del(type,id){
   catch(e){data[k]=old;render(true);toast('Verwijderen mislukt')}finally{pending--}
 }
 
+async function upd(type,id,item){
+  const k=listOf(type),it=data[k].find(x=>x.id===id);if(!it)return;
+  const old={...it};Object.assign(it,item);render(true);pending++;
+  try{await call({action:'update',type,id,data:item});save()}
+  catch(e){Object.assign(it,old);render(true);toast('Wijzigen mislukt: '+e.message)}finally{pending--}
+}
 function stats(extra){
   const r=data.ritten.concat(extra||[]).filter(x=>+x.kmstand).sort((a,b)=>a.kmstand-b.kmstand),km={Joppe:0,Iebe:0},paid={Joppe:0,Iebe:0},legs=[];
   for(let i=1;i<r.length;i++){const d=r[i].kmstand-r[i-1].kmstand;legs.push({...r[i],from:r[i-1].kmstand,dist:d});
@@ -171,9 +177,22 @@ function dayStyle(k,extra){
   if(!c.length)return'';
   return c.length>1?`;background:linear-gradient(135deg,${P[c[0]].bg} 50%,${P[c[1]].bg} 50%);color:#fff`:`;background:${P[c[0]].bg};color:${P[c[0]].fg}`;
 }
-const hd=(t,back)=>`<div class="top up"><button class="ib" data-act="go" data-v="${back}" aria-label="Terug">${ic('back')}</button><h1 class="h">${t}</h1></div>`;
+const hd=(t,back)=>`<div class="top up"><button class="ib" data-act="back" aria-label="Terug">${ic('back')}</button><h1 class="h">${t}</h1></div>`;
 const as=()=>cfg.me?`${dot(cfg.me)} `:'';
 
+const cap=t=>t[0].toUpperCase()+t.slice(1);
+const resRow=(r,home)=>{
+  const t=home?(multi(r)?tspan(r):fd(r.datum)+', '+tspan(r)):tspan(r),sub=(home?'':r.persoon)+(r.opmerking?(home?'':' · ')+r.opmerking:'');
+  const body=`${av(r.persoon)}<div style="flex:1;text-align:left"><b>${t}</b>${sub?`<p class="lab">${sub}</p>`:''}</div>`;
+  return r.persoon===cfg.me?`<button class="card row" style="width:100%;padding:12px 16px;margin-top:8px" data-act="edit" data-id="${r.id}" aria-label="Reservering bewerken">${body}<span style="color:var(--mute)">${ic('chev',20)}</span></button>`:`<div class="card row" style="padding:12px 16px;margin-top:8px">${body}</div>`;
+};
+function vDay(){
+  const k=D.date,rs=data.reserveringen.filter(r=>cov(r,k)).sort((a,b)=>rng(a)[0]-rng(b)[0]);
+  return `${hd(cap(dd(k).toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})),'home')}
+<p class="lab up" style="--i:1;margin:14px 0 0">${rs.length?rs.length+(rs.length>1?' reserveringen':' reservering'):'Geen reserveringen'}</p>
+${rs.map(r=>resRow(r)).join('')||`<div class="card up row" style="--i:2;gap:16px"><span class="bob">${ic('cal',32)}</span><div><b style="font-size:18px">Deze dag is vrij</b><p class="lab">De auto staat klaar</p></div></div>`}
+<button class="btn cta up" style="--i:5" data-act="newres" data-d="${k}">${ic('plus',22)}Nieuwe reservering</button>`;
+}
 function vHome(){
   const s=carState(),y=cur.getFullYear(),m=cur.getMonth(),off=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate(),t=T();
   let c=['ma','di','wo','do','vr','za','zo'].map(d=>`<span class="w">${d}</span>`).join('')+'<span></span>'.repeat(off);
@@ -186,7 +205,7 @@ function vHome(){
 <div class="mh up" style="--i:3"><div class="row" style="gap:4px"><button data-act="prev" aria-label="Vorige maand">‹</button><h2>${cur.toLocaleDateString('nl-BE',{month:'long',year:y===new Date().getFullYear()?undefined:'numeric'})}</h2><button data-act="next" aria-label="Volgende maand">›</button></div><span class="lab">${dot('Joppe')} Joppe &nbsp;${dot('Iebe')} Iebe</span></div>
 <div class="cal">${c}</div>
 <h2 class="up" style="--i:4;font-size:20px;font-weight:800;margin-top:18px">Komende reserveringen</h2>
-${up.map(r=>`<div class="card row" style="padding:12px 16px;margin-top:8px">${av(r.persoon)}<div style="flex:1"><b>${multi(r)?tspan(r):fd(r.datum)+', '+tspan(r)}</b>${r.opmerking?`<p class="lab">${r.opmerking}</p>`:''}</div>${r.persoon===cfg.me?`<button class="x" data-act="delr" data-id="${r.id}" aria-label="Annuleren">×</button>`:''}</div>`).join('')||'<p class="lab" style="margin-top:8px">Nog niets gepland. Tik op een dag om te reserveren.</p>'}
+${up.map(r=>resRow(r,1)).join('')||'<p class="lab" style="margin-top:8px">Nog niets gepland. Tik op een dag om te reserveren.</p>'}
 <button class="fab" data-act="go" data-v="res">${ic('plus',22)}<span>Shotgun Benny</span></button>`;
 }
 function vRes(){
@@ -194,13 +213,14 @@ function vRes(){
   const tile=(l,k,key)=>`<label class="dt"><span class="lab">${l}</span><b>${dd(k).toLocaleDateString('nl-BE',{weekday:'short',day:'numeric'})}</b><span class="lab">${dd(k).toLocaleDateString('nl-BE',{month:'long'})}</span><input type="date" value="${k}" data-k="${key}"${key==='de'?` min="${ds}"`:''}></label>`;
   let wk='';for(let i=0;i<7;i++){const x=new Date(mon);x.setDate(mon.getDate()+i);const k=iso(x);
     wk+=`<div style="text-align:center"><div class="lab">${['ma','di','wo','do','vr','za','zo'][i]}</div><button class="c" style="width:100%;margin-top:4px${dayStyle(k,k>=ds&&k<=de?cfg.me:'')}">${x.getDate()}</button></div>`}
-  return `${hd('Reserveren','home')}<p class="lab up" style="--i:1;margin:14px 0 0">${as()}Je reserveert als ${cfg.me||'…'}</p>
+  return `${hd(D.id?'Bewerken':'Reserveren','home')}<p class="lab up" style="--i:1;margin:14px 0 0">${as()}Je reserveert als ${cfg.me||'…'}</p>
 <div class="card up" style="--i:2"><label class="lab" for="w" style="font-size:18px;color:var(--ink)">Waarvoor?</label><input class="in" id="w" data-k="note" value="${note||''}" placeholder="Bv. dikke fjeeste in Gent"></div>
 <div class="card up" style="--i:3"><div class="row sp"><h2 style="font-size:18px;font-weight:800">Hele dag</h2><button class="sw${ad?'':' off'}" data-act="tgl" data-k="ad" aria-pressed="${ad}" aria-label="Hele dag"><i></i></button></div>
 <div class="row" style="margin-top:16px">${tile('Van',ds,'ds')}<span style="color:var(--mute)">${ic('arr')}</span>${tile('Tot',de,'de')}</div>
 ${ad?'':`<div class="two"><div><label class="lab">Van (uur)</label><input class="in b" type="time" data-k="ts" value="${ts}"></div><div><label class="lab">Tot (uur)</label><input class="in b" type="time" data-k="te" value="${te}"></div></div>`}</div>
 <div class="card up wk" style="--i:4"><h2 style="font-size:16px;font-weight:800;margin-bottom:10px">Planning van de week</h2><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${wk}</div></div>
-<button class="btn cta up" style="--i:5" data-act="resv">Zet mo vaste!</button>`;
+${D.id?'<button class="ghost" style="width:100%;justify-content:center;margin-top:12px;color:#B3261E" data-act="delres">Reservering verwijderen</button>':''}
+<button class="btn cta up" style="--i:5" data-act="resv">${D.id?'Wijzigingen opslaan':'Zet mo vaste!'}</button>`;
 }
 function vTanken(){
   const s=stats(),g=gauge(),mx=Math.max(s.paid.Joppe,s.paid.Iebe,1),f=data.tankbeurten.slice().sort((a,b)=>(b.datum||'').localeCompare(a.datum||'')).slice(0,8);
@@ -274,19 +294,24 @@ const UPD={
     $('#afinfo').innerHTML=`<div style="margin-top:12px">${Math.abs(amt-Math.abs(b))<.005?`<span class="chip">${ic('ok',18)}Precies het saldo: ${eur(Math.abs(b))}</span>`:`<span class="lab">Het huidige saldo is ${eur(Math.abs(b))}</span>`}</div><div class="card"><div class="row sp" style="align-items:baseline"><p class="lab">Saldo na deze afrekening</p><b style="font-size:22px;font-weight:800">${eur(Math.abs(after))}</b></div><div style="height:14px;border-radius:99px;background:#C8F24D;margin-top:10px;overflow:hidden"><div style="height:100%;width:${f*100}%;background:#FF8A2B;transition:width .4s"></div></div><p class="lab" style="margin-top:6px">${Math.abs(after)<.005?'Daarna staan jullie effen':after*(b||1)<0?'Let op: dit is meer dan het saldo':'Daarna blijft er nog een saldo over'}</p></div>`}
 };
 const NAV=['home','tanken','ritten','afrek'],FORMS=['res','tb','rit','afadd'];
-const VIEWS={home:vHome,res:vRes,tanken:vTanken,tb:vTb,ritten:vRitten,rit:vRit,afrek:vAfrek,afadd:vAfAdd};
+const VIEWS={home:vHome,day:vDay,res:vRes,tanken:vTanken,tb:vTb,ritten:vRitten,rit:vRit,afrek:vAfrek,afadd:vAfAdd};
 function render(soft){
   if(soft&&FORMS.includes(view))return;
   const nv=[['home','cal','Planner'],['tanken','pump','Tanken'],['ritten','route','Ritten'],['afrek','bill','Afrekening']];
   $('#app').innerHTML=VIEWS[view]()+(NAV.includes(view)?`<nav aria-label="Hoofdmenu">${nv.map(([v,i,t])=>`<button data-v="${v}" class="${v===view?'on':''}">${ic(i)}${t}</button>`).join('')}</nav>`:'');
   if(UPD[{tb:'tb',rit:'rit',afadd:'af'}[view]])UPD[{tb:'tb',rit:'rit',afadd:'af'}[view]]();
 }
-function go(v,d){
+function show(v,d){
   const init={res:()=>({ad:true,ds:T(),de:T(),ts:'09:00',te:'10:00',note:''}),tb:()=>({datum:T(),vol:true}),rit:()=>({who:cfg.me||'Joppe',km:''}),afadd:()=>({bedrag:nl(Math.abs(stats().bal)),meth:'Overschrijving'})};
   view=v;D=Object.assign(init[v]?init[v]():{},d||{});if(v==='res'&&D.ds>D.de)D.de=D.ds;
   const a=$('#app');a.classList.add('anim');clearTimeout(go.t);go.t=setTimeout(()=>a.classList.remove('anim'),1300);
   render();scrollTo(0,0);
 }
+function go(v,d,mode){const cs=history.state||{i:0};history[mode==='replace'?'replaceState':'pushState']({v,d:d||{},i:mode==='replace'?cs.i:cs.i+1},'');show(v,d)}
+function back(){if((history.state||{}).i>0)history.back();else show('home')}
+function navTo(v){if(v===view)return;if(v==='home'){back();return}go(v,{},view==='home'?'push':'replace')}
+function closeSheet(){if(!document.body.classList.contains('open'))return;document.body.classList.remove('open');if((history.state||{}).sh)history.back()}
+window.addEventListener('popstate',e=>{document.body.classList.remove('open');const st=e.state||{v:'home',d:{}};if(st.sh)return;show(st.v,st.d)});
 function shrink(file){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8).split(',')[1])};im.onerror=no;im.src=URL.createObjectURL(file)})}
 async function readImg(file,action,done){
   if(!file)return;const v=view;D.st='Foto wordt afgelezen, even geduld...';const el=$('#st');if(el)el.textContent=D.st;
@@ -296,7 +321,7 @@ async function readImg(file,action,done){
   }catch(e){D.st='Aflezen lukte niet ('+e.message+'). Vul het zelf in.'}
   if(view===v)render();
 }
-function sheet(h){$('#sheet').innerHTML=h;document.body.classList.add('open')}
+function sheet(h){$('#sheet').innerHTML=h;history.pushState({...(history.state||{v:'home',d:{},i:0}),sh:1},'');document.body.classList.add('open')}
 function setupSheet(){
   const pick=NAMES.map(n=>`<label style="flex:1"><input type="radio" name="me" value="${n}" ${n===cfg.me?'checked':''} style="accent-color:${P[n].bg}"> ${n}</label>`).join('');
   sheet(`<h2 style="font-size:22px;font-weight:800;margin-bottom:12px">Instellingen</h2>${cfg.me?'':`<p class="lab" style="margin-bottom:6px">Wie ben jij?</p><div class="row" style="margin-bottom:12px;font-weight:700">${pick}</div>`}<p class="lab">Geheime sleutel</p><input class="in" id="kk" type="password" value="${cfg.key}" autocomplete="off"><button class="btn" style="margin-top:14px" data-act="savecfg">Opslaan</button>`);
@@ -304,32 +329,34 @@ function setupSheet(){
 function saveRes(){
   if(needMe())return;const{ad,ds,de,ts,te,note}=D,t1=ad?'':ts,t2=ad?'':te;
   if(!ds||!de||de<ds||(!ad&&(!t1||!t2||(de===ds&&t2<=t1)))){toast('Het einde moet na het begin liggen.');return}
-  const nr={datum:ds,eind:de>ds?de:'',persoon:cfg.me,van:t1,tot:t2,opmerking:(note||'').trim()},[a,b]=rng(nr),c=data.reserveringen.find(r=>a<rng(r)[1]&&rng(r)[0]<b);
+  const nr={datum:ds,eind:de>ds?de:'',persoon:cfg.me,van:t1,tot:t2,opmerking:(note||'').trim()},[a,b]=rng(nr),c=data.reserveringen.find(r=>r.id!==D.id&&a<rng(r)[1]&&rng(r)[0]<b);
   if(c){toast('Overlapt met '+c.persoon+' ('+tspan(c)+').');return}
-  add('reservering',nr);go('home');
+  if(D.id){if(String(D.id).startsWith('tmp')){toast('Even geduld, deze reservering wordt nog opgeslagen.');return}upd('reservering',D.id,nr)}else add('reservering',nr);back();
 }
 document.addEventListener('click',e=>{
-  const nv=e.target.closest('nav button');if(nv){go(nv.dataset.v);return}
+  const nv=e.target.closest('nav button');if(nv){navTo(nv.dataset.v);return}
   const b=e.target.closest('[data-act]');if(!b)return;const d=b.dataset;
   ({go:()=>go(d.v),
    prev:()=>{cur.setMonth(cur.getMonth()-1);render()},next:()=>{cur.setMonth(cur.getMonth()+1);render()},
-   dayp:()=>go('res',{ds:d.d,de:d.d}),
+   dayp:()=>go('day',{date:d.d}),newres:()=>go('res',{ds:d.d,de:d.d}),back,
+   edit:()=>{const r=data.reserveringen.find(x=>x.id===d.id);if(!r)return;if(String(r.id).startsWith('tmp')){toast('Even geduld, deze reservering wordt nog opgeslagen.');return}go('res',{id:r.id,ad:!r.van&&!r.tot,ds:r.datum,de:r.eind||r.datum,ts:r.van||'09:00',te:r.tot||'10:00',note:r.opmerking||''})},
+   delres:()=>{if(confirm('Deze reservering verwijderen?')){del('reservering',D.id);back()}},
    who:()=>{cfg.me=d.n;LS.setItem('ap_me',cfg.me);render()},
    tgl:()=>{D[d.k]=!D[d.k];render()},rw:()=>{D.who=d.n;render()},meth:()=>{D.meth=d.m;render()},
-   setup:setupSheet,close:()=>document.body.classList.remove('open'),
-   savecfg:()=>{const r=document.querySelector('input[name=me]:checked');cfg.me=(r&&r.value)||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);document.body.classList.remove('open');render();sync()},
+   setup:setupSheet,close:closeSheet,
+   savecfg:()=>{const r=document.querySelector('input[name=me]:checked');cfg.me=(r&&r.value)||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);closeSheet();render();sync()},
    resv:saveRes,
    delr:()=>del('reservering',d.id),
    delt:()=>{if(confirm('Deze tankbeurt verwijderen?'))del('tankbeurt',d.id)},
    delrit:()=>{if(confirm('Deze kilometerstand verwijderen?'))del('rit',d.id)},
    delaf:()=>{if(confirm('Deze afrekening verwijderen?'))del('afrekening',d.id)},
    tbsave:()=>{if(needMe())return;const b=num(D.bedrag),l=num(D.liters);if(b<=0||l<=0){toast('Vul bedrag en liters in.');return}
-     add('tankbeurt',{datum:D.datum,persoon:cfg.me,liters:l,bedrag:b,vol:D.vol?'ja':'nee'});go('tanken')},
+     add('tankbeurt',{datum:D.datum,persoon:cfg.me,liters:l,bedrag:b,vol:D.vol?'ja':'nee'});back()},
    ritsave:()=>{if(needMe())return;const k=num(D.km),last=Math.max(0,...data.ritten.map(x=>+x.kmstand||0));
      if(!k){toast('Neem een foto of typ de kilometerstand.');return}if(last&&k<=last){toast('Deze stand moet hoger zijn dan de vorige ('+fk(last)+' km).');return}
-     add('rit',{datum:T(),persoon:D.who||cfg.me,kmstand:k});go('ritten')},
+     add('rit',{datum:T(),persoon:D.who||cfg.me,kmstand:k});back()},
    afsave:()=>{if(needMe())return;const{o,amt}=afInfo();if(amt<=0){toast('Vul een bedrag in.');return}
-     add('afrekening',{datum:T(),betaler:o[0],ontvanger:o[1],bedrag:amt,methode:D.meth});go('afrek')}
+     add('afrekening',{datum:T(),betaler:o[0],ontvanger:o[1],bedrag:amt,methode:D.meth});back()}
   })[d.act]?.();
 });
 document.addEventListener('input',e=>{const t=e.target;if(t.dataset.k&&t.type!=='date'){D[t.dataset.k]=t.value;if(t.dataset.u)UPD[t.dataset.u]()}});
@@ -339,6 +366,7 @@ document.addEventListener('change',e=>{
   if(t.id==='bonf'){readImg(t.files[0],'receipt',j=>{if(j.bedrag)D.bedrag=nl(num(j.bedrag));if(j.liters)D.liters=nl(num(j.liters)).replace(/,00$/,'')});t.value=''}
   if(t.id==='kmf'){readImg(t.files[0],'odometer',j=>{D.km=j.km;D.read=true});t.value=''}
 });
+history.replaceState({v:'home',d:{},i:0},'');
 render();
 if(!cfg.key||!cfg.me)setupSheet();else sync();
 setTimeout(()=>$('#app').classList.remove('anim'),1300);
