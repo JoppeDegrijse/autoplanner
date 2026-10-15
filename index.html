@@ -346,6 +346,8 @@ async function loadFB(){
   await loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 }
 let fbListening=false;
+const pst=t=>{const e=$('#pst');if(e)e.textContent=t};
+const pushInfo=()=>'Toestemming: '+('Notification' in window?({granted:'ja',denied:'geweigerd',default:'nog niet gevraagd'})[Notification.permission]:'niet ondersteund')+'. Toestel gekoppeld: '+(LS.getItem('ap_push')?'ja':'nee')+'.';
 async function registerPush(silent){
   try{
     if(!('Notification' in window)||!('serviceWorker' in navigator))throw new Error('Dit toestel ondersteunt geen meldingen.');
@@ -359,13 +361,13 @@ async function registerPush(silent){
     await call({action:'token',token,persoon:cfg.me});
     LS.setItem('ap_push','1');
     if(!fbListening){fbListening=true;m.onMessage(p=>{const d=p.data||{};toast((d.title||'Benny Berlingo')+': '+(d.body||''));sync()})}
-    if(!silent)toast('Meldingen staan aan voor '+cfg.me+'.');
-  }catch(e){if(!silent)toast(e.message)}
+    if(!silent){toast('Meldingen staan aan voor '+cfg.me+'.');pst(pushInfo()+' Dit toestel is gekoppeld aan '+cfg.me+'.')}
+  }catch(e){if(!silent){toast(e.message);pst('Mislukt: '+e.message)}}
 }
 function sheet(h){$('#sheet').innerHTML=h;history.pushState({...(history.state||{v:'home',d:{},i:0}),sh:1},'');document.body.classList.add('open')}
 function setupSheet(){
   const pick=NAMES.map(n=>`<label style="flex:1"><input type="radio" name="me" value="${n}" ${n===cfg.me?'checked':''} style="accent-color:${P[n].bg}"> ${n}</label>`).join('');
-  sheet(`<h2 style="font-size:22px;font-weight:800;margin-bottom:12px">Instellingen</h2>${cfg.me?'':`<p class="lab" style="margin-bottom:6px">Wie ben jij?</p><div class="row" style="margin-bottom:12px;font-weight:700">${pick}</div>`}<p class="lab">Geheime sleutel</p><input class="in" id="kk" type="password" value="${cfg.key}" autocomplete="off"><button class="btn" style="margin-top:14px" data-act="savecfg">Opslaan</button><p class="lab" style="margin:22px 0 6px">Meldingen van Benny Berlingo</p><button class="btn" style="background:#17142B" data-act="push">${LS.getItem('ap_push')?'Meldingen opnieuw koppelen':'Meldingen aanzetten'}</button><button class="ghost" style="width:100%;justify-content:center;margin-top:8px" data-act="testpush">Stuur een testmelding</button>`);
+  sheet(`<h2 style="font-size:22px;font-weight:800;margin-bottom:12px">Instellingen</h2>${cfg.me?'':`<p class="lab" style="margin-bottom:6px">Wie ben jij?</p><div class="row" style="margin-bottom:12px;font-weight:700">${pick}</div>`}<p class="lab">Geheime sleutel</p><input class="in" id="kk" type="password" value="${cfg.key}" autocomplete="off"><button class="btn" style="margin-top:14px" data-act="savecfg">Opslaan</button><p class="lab" style="margin:22px 0 6px">Meldingen van Benny Berlingo</p><button class="btn" style="background:#17142B" data-act="push">${LS.getItem('ap_push')?'Meldingen opnieuw koppelen':'Meldingen aanzetten'}</button><button class="ghost" style="width:100%;justify-content:center;margin-top:8px" data-act="testpush">Stuur een testmelding</button><p class="lab" id="pst" style="margin-top:10px;line-height:1.4">${pushInfo()}</p>`);
 }
 function saveRes(){
   if(needMe())return;const{ad,ds,de,ts,te,note}=D,t1=ad?'':ts,t2=ad?'':te;
@@ -385,7 +387,10 @@ document.addEventListener('click',e=>{
    delres:()=>{const id=D.id;ask(()=>{del('reservering',id);back()})},
    who:()=>{cfg.me=d.n;LS.setItem('ap_me',cfg.me);render();if(LS.getItem('ap_push'))registerPush(true)},
    push:()=>registerPush(false),
-   testpush:async()=>{try{await call({action:'testpush'});toast('Testmelding verstuurd. Die komt zo binnen.')}catch(e){toast(e.message)}},
+   testpush:async()=>{
+     if(!LS.getItem('ap_push')){pst('Dit toestel is nog niet gekoppeld. Tik eerst op "Meldingen aanzetten".');return}
+     pst('Testmelding wordt verstuurd...');
+     try{const j=await call({action:'testpush'});pst(j.sent?'Verstuurd naar '+j.sent+' toestel(len). Komt er niets binnen? Kijk in de instellingen van je telefoon of meldingen voor Chrome en voor deze app aanstaan.':'Niet verstuurd: '+(j.reden||'onbekende reden'))}catch(e){pst('Mislukt: '+e.message)}},
    tgl:()=>{D[d.k]=!D[d.k];render()},rw:()=>{D.who=d.n;render()},meth:()=>{D.meth=d.m;render()},
    setup:setupSheet,close:closeSheet,
    savecfg:()=>{const r=document.querySelector('input[name=me]:checked');cfg.me=(r&&r.value)||cfg.me;cfg.key=$('#kk').value.trim();LS.setItem('ap_me',cfg.me);LS.setItem('ap_key',cfg.key);closeSheet();render();sync()},

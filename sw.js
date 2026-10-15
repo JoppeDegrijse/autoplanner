@@ -8,16 +8,22 @@ self.addEventListener('fetch',e=>{
 });
 
 // Push-meldingen (Firebase Cloud Messaging). Mislukt het laden, dan werkt de app gewoon verder zonder meldingen.
+let fbOK=false;
 try{
   importScripts('firebase-config.js','https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js','https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
   if(self.FB_CONFIG&&!/^VUL/.test(self.FB_CONFIG.apiKey)){
     firebase.initializeApp(self.FB_CONFIG);
+    fbOK=true;
     firebase.messaging().onBackgroundMessage(p=>{
       const d=p.data||{};
       return self.registration.showNotification(d.title||'Benny Berlingo',{body:d.body||'',icon:'icon-192.png',badge:'badge-96.png',tag:d.tag||undefined,vibrate:[120,60,120],data:{url:'./'}});
     });
   }
 }catch(e){}
+self.addEventListener('push',e=>{
+  if(fbOK)return;
+  try{const d=(e.data&&e.data.json().data)||{};e.waitUntil(self.registration.showNotification(d.title||'Benny Berlingo',{body:d.body||'',icon:'icon-192.png',badge:'badge-96.png',tag:d.tag||undefined,data:{url:'./'}}))}catch(x){}
+});
 self.addEventListener('notificationclick',e=>{
   e.notification.close();
   e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(l=>{
